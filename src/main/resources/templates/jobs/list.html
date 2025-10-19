@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Jobs</title>
+    <style>
+        body{font-family:Arial, sans-serif; margin:24px}
+        table{border-collapse:collapse; width:100%}
+        th,td{border:1px solid #ddd; padding:8px; vertical-align: top;}
+        th{background:#f4f4f4; text-align:left}
+        .pager a{margin-right:8px}
+        .muted{color:#666; font-size: 12px}
+    </style>
+</head>
+<body>
+<h1>Open Jobs</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>Title</th>
+        <th>Company</th>
+        <th>Category</th>
+        <th>Location</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="j : ${page.content}">
+        <td>
+            <a th:href="@{|/jobs/${j.id}|}" th:text="${j.title}">Title</a>
+        </td>
+        <td th:text="${j.company} ?: '-'">Company</td> <!-- NEW -->
+        <td th:text="${j.category != null ? j.category.name : '-'}">Category</td>
+        <td th:text="${j.location} ?: '-'">Location</td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(page.content)}">
+        <td colspan="6">No jobs yet.</td>
+    </tr>
+    </tbody>
+</table>
+
+<div sec:authorize="hasRole('ADMIN')" style="margin: 12px 0;">
+    <form th:action="@{/jobs/import-csv}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+    </form>
+    <div th:if="${msg}" th:text="${msg}" style="color: green; margin-top: 8px;"></div>
+    <div th:if="${error}" th:text="${error}" style="color: red; margin-top: 8px;"></div>
+</div>
+
+<div class="pager" style="margin-top:12px" th:if="${page.totalPages > 1}">
+    <span th:text="'Page ' + (${page.number}+1) + ' / ' + ${page.totalPages}">Page</span>
+    <div>
+        <a th:if="${page.hasPrevious()}"
+           th:href="@{/jobs(size=${page.size}, page=${page.number - 1})}">Prev</a>
+        <a th:if="${page.hasNext()}"
+           th:href="@{/jobs(size=${page.size}, page=${page.number + 1})}">Next</a>
+    </div>
+</div>
+
+</body>
+</html>

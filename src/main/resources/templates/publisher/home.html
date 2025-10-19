@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="he">
+<head><meta charset="UTF-8"><title>publisher home page</title></head>
+<body>
+<h1>שלום מפרסם</h1>
+<p><a th:href="@{/publisher/jobs}">Managing my jobs</a></p>
+<a href="#" onclick="document.getElementById('logoutForm').submit(); return false;">התנתקות</a>
+<form id="logoutForm" th:action="@{/logout}" method="post" style="display:none">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+</form>
+</body>
+</html>

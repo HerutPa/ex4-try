@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Job Board</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+<header>
+    <h1>Welcome to Job Board</h1>
+    <nav>
+        <a class="btn" th:href="@{/jobs}">Browse Jobs</a>
+
+        <!-- למבקרים (לא מחוברים) -->
+        <span sec:authorize="isAnonymous()">
+        <a class="btn" th:href="@{/login}">Login</a>
+        <a class="btn btn-outline" th:href="@{/register}">Register</a>
+      </span>
+
+        <!-- למשתמשים מחוברים -->
+        <span sec:authorize="isAuthenticated()">
+        <span>Hello, <strong sec:authentication="name"></strong></span>
+        <a class="btn" th:href="@{/}">Home</a>
+
+            <!-- Logout דרך POST -->
+        <form th:action="@{/logout}" method="post" style="display:inline;">
+          <button type="submit" class="btn btn-danger">Logout</button>
+        </form>
+      </span>
+    </nav>
+</header>
+
+<main>
+    <p>Find your next job here.</p>
+</main>
+
+</body>
+</html>

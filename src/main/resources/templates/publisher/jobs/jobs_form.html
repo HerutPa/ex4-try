@@ -1,0 +1,120 @@
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="jobForm">
+    <div>
+        <label>Company</label>
+        <input th:field="*{company}" required>
+        <div th:if="${#fields.hasErrors('company')}" th:errors="*{company}" style="color:red"></div>
+    </div>
+
+    <div>
+        <label>Title</label>
+        <input th:field="*{title}" required>
+        <div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" style="color:red"></div>
+    </div>
+
+    <div>
+        <label>Description</label>
+        <textarea th:field="*{description}" rows="5" required></textarea>
+        <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}" style="color:red"></div>
+    </div>
+
+    <fieldset style="border:1px solid #ccc; padding:8px; margin:10px 0">
+        <legend>Category</legend>
+
+        <!-- שגיאת הולידציה המותנית (או קטגוריה קיימת או חדשה) -->
+        <div th:if="${#fields.hasGlobalErrors()}" style="color:red; margin-bottom:6px">
+            <div th:each="e : ${#fields.globalErrors()}" th:text="${e}">error</div>
+        </div>
+
+        <div>
+            <label>Choose existing</label>
+            <select th:field="*{categoryId}" id="categorySelect">
+                <option value="">-- Select --</option>
+                <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}">Category</option>
+            </select>
+        </div>
+
+        <div style="text-align:center; margin:6px 0">or</div>
+
+        <div>
+            <label>New category</label>
+            <input th:field="*{newCategoryName}" id="newCategoryInput" placeholder="e.g. DevOps">
+        </div>
+
+        <script>
+            (function(){
+              const sel=document.getElementById('categorySelect');
+              const inp=document.getElementById('newCategoryInput');
+              if(!sel||!inp) return;
+              sel.addEventListener('change',()=>{ if(sel.value) inp.value=''; });
+              inp.addEventListener('input',()=>{ if(inp.value) sel.value=''; });
+            })();
+        </script>
+    </fieldset>
+
+    <!-- ===== Skills ===== -->
+    <fieldset style="border:1px solid #ccc; padding:8px; margin:10px 0">
+        <legend>Skills</legend>
+
+        <!-- שגיאות ולידציה ייעודיות -->
+        <div th:if="${#fields.hasErrors('skillIds')}" th:errors="*{skillIds}" style="color:red; margin-bottom:6px"></div>
+        <div th:if="${#fields.hasErrors('skillsInput')}" th:errors="*{skillsInput}" style="color:red; margin-bottom:6px"></div>
+
+        <div>
+            <label>Choose existing (multi-select)</label><br>
+            <select th:field="*{skillIds}" id="skillsSelect" multiple size="6" style="min-width:280px">
+                <option th:each="s : ${allSkills}" th:value="${s.id}" th:text="${s.name}">Skill</option>
+            </select>
+            <div id="skillsSelectedCount" style="font-size:12px; color:#555; margin-top:4px">0 selected</div>
+        </div>
+
+        <div style="text-align:center; margin:6px 0">or</div>
+
+        <div>
+            <label>New skills (comma-separated)</label>
+            <input th:field="*{skillsInput}" id="skillsInput" placeholder="e.g. Java, Spring Boot, SQL" style="min-width:280px">
+            <div style="font-size:12px; color:#777; margin-top:4px">
+                Tip: כתבי כמה מיומנויות מופרדות בפסיקים. מיומנויות שאינן קיימות ייווצרו אוטומטית.
+            </div>
+        </div>
+
+        <script>
+            (function(){
+              const sel = document.getElementById('skillsSelect');
+              const inp = document.getElementById('skillsInput');
+              const cnt = document.getElementById('skillsSelectedCount');
+              if(!sel || !inp) return;
+
+              function updateCount(){
+                const n = Array.from(sel.options).filter(o=>o.selected).length;
+                if(cnt) cnt.textContent = n + " selected";
+              }
+              sel.addEventListener('change', ()=>{
+                if(Array.from(sel.options).some(o=>o.selected)) { inp.value=''; }
+                updateCount();
+              });
+              inp.addEventListener('input', ()=>{
+                if(inp.value.trim().length>0){
+                  Array.from(sel.options).forEach(o=>o.selected=false);
+                  updateCount();
+                }
+              });
+              updateCount();
+            })();
+        </script>
+    </fieldset>
+
+    <div>
+        <label>Location</label>
+        <input th:field="*{location}">
+    </div>
+
+    <div>
+        <label>External URL</label>
+        <input th:field="*{externalUrl}" placeholder="https://example.com/apply">
+        <div th:if="${#fields.hasErrors('externalUrl')}" th:errors="*{externalUrl}" style="color:red"></div>
+    </div>
+
+    <div>
+        <label><input type="checkbox" th:field="*{active}"> Active</label>
+    </div>
+</div>

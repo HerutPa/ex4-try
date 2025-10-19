@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+<h1>Login</h1>
+
+<div th:if="${param.error}" style="color:red">Incorrect email or password</div>
+<div th:if="${param.logout}" style="color:green">successfully logged out</div>
+
+<form th:action="@{/login}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <div>
+        <label>אימייל</label>
+        <input type="email" name="email" required>
+    </div>
+    <div>
+        <label>סיסמה</label>
+        <input type="password" name="password" required>
+    </div>
+    <button type="submit">Login</button>
+</form>
+
+<p><a th:href="@{/register}">Register</a></p>
+</body>
+</html>

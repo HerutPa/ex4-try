@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="he">
+<head><meta charset="UTF-8"><title>New Job</title></head>
+<body>
+<h1>New Job</h1>
+
+<!-- שגיאות אם יש -->
+<div th:if="${#fields.hasAnyErrors()}" style="color:red; margin-bottom:10px" th:object="${form}">
+  <ul><li th:each="e : ${#fields.allErrors()}" th:text="${e}">err</li></ul>
+</div>
+
+<form th:action="@{/publisher/jobs}" th:object="${form}" method="post">
+  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+  <!-- טוען את הפרגמנט (שימי לב לשם הקובץ שנכון אצלך) -->
+  <div th:replace="~{publisher/jobs/jobs_form :: jobForm}"></div>
+  <button type="submit">Create</button>
+  <a th:href="@{/publisher/jobs}">Cancel</a>
+</form>
+</body>
+</html>

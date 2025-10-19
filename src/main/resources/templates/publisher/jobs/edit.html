@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Edit Job</title></head>
+<body>
+<h1>Edit Job</h1>
+
+<form th:action="@{/publisher/jobs/{id}(id=${jobId})}" th:object="${form}" method="post">
+    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+    <div th:replace="~{publisher/jobs/jobs_form :: jobForm}"></div>
+
+    <button type="submit">Save</button>
+    <a th:href="@{/publisher/jobs}">Cancel</a>
+</form>
+</body>
+</html>

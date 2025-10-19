@@ -1,0 +1,6 @@
+id,company,title,description,location,salaryMin,salaryMax,externalUrl,isActive,createdAt,category,skills
+,Microsoft,Backend Developer,"Build backend services in .NET",Tel Aviv,23000,30000,https://careers.microsoft.com/job/101,true,2025-09-10 10:00:00,Backend,"C#; .NET; SQL; Azure"
+,Google,Data Engineer,"Data pipelines & warehousing",Remote,24000,32000,https://careers.google.com/job/102,true,2025-09-09 09:00:00,Data,"Python; BigQuery; Airflow; SQL"
+,Apple,Frontend Developer,"React + TypeScript UI work",Herzliya,22000,29000,https://jobs.apple.com/job/103,true,2025-09-08 08:00:00,Frontend,"React; TypeScript; HTML; CSS"
+,Intel,QA Automation Engineer,"Selenium/Cypress automation",Haifa,20000,27000,https://jobs.intel.com/job/104,true,2025-09-07 08:30:00,QA,"Selenium; Cypress; JS; REST"
+,IBM,Machine Learning Engineer,"Model training & MLOps",Remote,26000,35000,https://careers.ibm.com/job/105,true,2025-09-06 11:00:00,ML,"Python; ML; TensorFlow; Docker"
