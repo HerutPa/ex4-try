@@ -55,6 +55,7 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "skill_id"))
     private Set<Skill> skills = new HashSet<>();
     public void setSkills(Set<Skill> skills){ this.skills = skills; }
+    public Set<Skill> getSkills() { return skills; }
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Review> reviews = new HashSet<>();
@@ -62,6 +63,34 @@ public class User {
     public Set<Review> getReviews() { return reviews; }
     public void setReviews(Set<Review> reviews) { this.reviews = reviews; }
 
+    // ===== 🆕 קשר למשרות מועדפות =====
+    @ManyToMany
+    @JoinTable(
+            name = "user_favorite_jobs",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "job_id"),
+            indexes = {
+                    @Index(name = "idx_user_favorites_user", columnList = "user_id"),
+                    @Index(name = "idx_user_favorites_job", columnList = "job_id")
+            }
+    )
+    private Set<Job> favoriteJobs = new HashSet<>();
+
+    public Set<Job> getFavoriteJobs() { return favoriteJobs; }
+    public void setFavoriteJobs(Set<Job> favoriteJobs) { this.favoriteJobs = favoriteJobs; }
+
+    // helper methods for favorites
+    public void addFavoriteJob(Job job) {
+        this.favoriteJobs.add(job);
+    }
+
+    public void removeFavoriteJob(Job job) {
+        this.favoriteJobs.remove(job);
+    }
+
+    public boolean isFavorite(Job job) {
+        return this.favoriteJobs.contains(job);
+    }
 
     @PrePersist void onCreate() { if (createdAt == null) createdAt = Instant.now(); }
 

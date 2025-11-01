@@ -42,11 +42,11 @@
 
         <script>
             (function(){
-              const sel=document.getElementById('categorySelect');
-              const inp=document.getElementById('newCategoryInput');
-              if(!sel||!inp) return;
-              sel.addEventListener('change',()=>{ if(sel.value) inp.value=''; });
-              inp.addEventListener('input',()=>{ if(inp.value) sel.value=''; });
+                const sel=document.getElementById('categorySelect');
+                const inp=document.getElementById('newCategoryInput');
+                if(!sel||!inp) return;
+                sel.addEventListener('change',()=>{ if(sel.value) inp.value=''; });
+                inp.addEventListener('input',()=>{ if(inp.value) sel.value=''; });
             })();
         </script>
     </fieldset>
@@ -67,38 +67,32 @@
             <div id="skillsSelectedCount" style="font-size:12px; color:#555; margin-top:4px">0 selected</div>
         </div>
 
-        <div style="text-align:center; margin:6px 0">or</div>
+        <div style="text-align:center; margin:6px 0">and/or</div>
 
         <div>
             <label>New skills (comma-separated)</label>
             <input th:field="*{skillsInput}" id="skillsInput" placeholder="e.g. Java, Spring Boot, SQL" style="min-width:280px">
             <div style="font-size:12px; color:#777; margin-top:4px">
-                Tip: כתבי כמה מיומנויות מופרדות בפסיקים. מיומנויות שאינן קיימות ייווצרו אוטומטית.
+                💡 Tip: אפשר לבחור מהרשימה <strong>וגם</strong> להוסיף חדשים בטקסט חופשי. שניהם יתווספו ביחד!
             </div>
         </div>
 
         <script>
             (function(){
-              const sel = document.getElementById('skillsSelect');
-              const inp = document.getElementById('skillsInput');
-              const cnt = document.getElementById('skillsSelectedCount');
-              if(!sel || !inp) return;
+                const sel = document.getElementById('skillsSelect');
+                const cnt = document.getElementById('skillsSelectedCount');
+                if(!sel) return;
 
-              function updateCount(){
-                const n = Array.from(sel.options).filter(o=>o.selected).length;
-                if(cnt) cnt.textContent = n + " selected";
-              }
-              sel.addEventListener('change', ()=>{
-                if(Array.from(sel.options).some(o=>o.selected)) { inp.value=''; }
-                updateCount();
-              });
-              inp.addEventListener('input', ()=>{
-                if(inp.value.trim().length>0){
-                  Array.from(sel.options).forEach(o=>o.selected=false);
-                  updateCount();
+                function updateCount(){
+                    const n = Array.from(sel.options).filter(o=>o.selected).length;
+                    if(cnt) cnt.textContent = n + " selected";
                 }
-              });
-              updateCount();
+
+                // 🆕 הסרנו את הלוגיקה שמנקה אוטומטית!
+                // עכשיו אפשר לבחור מהרשימה וגם להוסיף טקסט חופשי ביחד
+
+                sel.addEventListener('change', updateCount);
+                updateCount();
             })();
         </script>
     </fieldset>

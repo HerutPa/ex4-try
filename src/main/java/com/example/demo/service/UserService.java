@@ -98,4 +98,69 @@ public class UserService {
         return userRepo.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found by email: " + email));
     }
+
+    // ===== 🆕 עדכון Skills =====
+    /**
+     * עדכון כישורים של משתמש קיים
+     * @param userId מזהה המשתמש
+     * @param selectedSkillNames רשימת שמות כישורים שנבחרו (checkboxes)
+     * @param freeTextSkills טקסט חופשי של כישורים (פסיק/נקודה-פסיק)
+     * @return המשתמש המעודכן
+     */
+    @Transactional
+    public User updateUserSkills(Long userId,
+                                 List<String> selectedSkillNames,
+                                 String freeTextSkills) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        // בדיקה שהמשתמש הוא USER (רק USER יכול לערוך Skills)
+        if (user.getRole() != Role.USER) {
+            throw new IllegalArgumentException("Only USER role can edit skills");
+        }
+
+        // איסוף כל שמות ה-Skills (מה-checkboxes + מטקסט חופשי)
+        Set<String> allSkillNames = new HashSet<>();
+
+        // מה-checkboxes
+        if (selectedSkillNames != null) {
+            for (String name : selectedSkillNames) {
+                if (name != null && !name.isBlank()) {
+                    allSkillNames.add(name.trim());
+                }
+            }
+        }
+
+        // מטקסט חופשי
+        if (freeTextSkills != null && !freeTextSkills.isBlank()) {
+            for (String token : freeTextSkills.split("[,;]")) {
+                String name = token.trim();
+                if (!name.isEmpty()) {
+                    allSkillNames.add(name);
+                }
+            }
+        }
+
+        // מציאה/יצירה של Skill entities
+        Set<Skill> skillEntities = new HashSet<>();
+        for (String name : allSkillNames) {
+            Skill skill = skillRepo.findByNameIgnoreCase(name)
+                    .orElseGet(() -> skillRepo.save(new Skill(name)));
+            skillEntities.add(skill);
+        }
+
+        // עדכון ה-Skills של המשתמש (מנקה ישנים ומוסיף חדשים)
+        user.setSkills(skillEntities);
+
+        return userRepo.save(user);
+    }
+
+    /**
+     * קבלת משתמש לפי ID
+     */
+    @Transactional(readOnly = true)
+    public User getByIdOrThrow(Long userId) {
+        return userRepo.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    }
 }

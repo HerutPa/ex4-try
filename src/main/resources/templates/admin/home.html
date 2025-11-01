@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>דף הבית - משתמש</title>
+    <title>פאנל ניהול - אדמין</title>
     <style>
         * {
             margin: 0;
@@ -15,7 +15,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -28,9 +28,21 @@
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             padding: 50px;
-            max-width: 600px;
+            max-width: 700px;
             width: 100%;
             text-align: center;
+        }
+
+        .admin-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
         }
 
         .welcome-section {
@@ -45,7 +57,7 @@
         }
 
         .user-name {
-            color: #667eea;
+            color: #e74c3c;
             font-weight: 700;
         }
 
@@ -55,7 +67,6 @@
             margin-top: 10px;
         }
 
-        /* הודעת הצלחה */
         .alert-success {
             background: #d4edda;
             color: #155724;
@@ -87,56 +98,54 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
             color: white;
         }
 
         .btn-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
         }
 
         .btn-secondary {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
             color: white;
         }
 
         .btn-secondary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
         }
 
-        /* כפתור מועדפים */
-        .btn-favorites {
-            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-            color: #333;
+        .btn-info {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
         }
 
-        .btn-favorites:hover {
+        .btn-info:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+            box-shadow: 0 6px 20px rgba(155, 89, 182, 0.4);
         }
 
-        /* 🆕 כפתור עריכת כישורים - במקום "חזרה לדף ראשי" */
-        .btn-edit {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            color: #333;
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
         }
 
-        .btn-edit:hover {
+        .btn-warning:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(67, 233, 123, 0.4);
+            box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
         }
 
         .btn-logout {
-            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            color: #333;
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+            color: white;
             margin-top: 20px;
         }
 
         .btn-logout:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(250, 112, 154, 0.4);
+            box-shadow: 0 6px 20px rgba(149, 165, 166, 0.4);
         }
 
         .icon {
@@ -170,29 +179,31 @@
 </head>
 <body>
 <div class="container">
+    <div class="admin-badge">👑 ADMIN PANEL</div>
+
     <div class="welcome-section">
-        <h1>שלום <span class="user-name" sec:authentication="name">משתמש</span>! 👋</h1>
-        <p class="subtitle">ברוך הבא למערכת ניהול המשרות</p>
+        <h1>שלום <span class="user-name" sec:authentication="name">אדמין</span>! 👨‍💼</h1>
+        <p class="subtitle">ברוך הבא לפאנל הניהול</p>
     </div>
 
     <!-- הודעת הצלחה אם יש -->
     <div th:if="${msg}" class="alert-success" th:text="${msg}"></div>
 
     <div class="buttons-container">
-        <a th:href="@{/jobs}" class="btn btn-primary">
+        <a th:href="@{/admin/jobs}" class="btn btn-primary">
             <span class="icon">💼</span>
-            עיון במשרות פתוחות
+            ניהול משרות
         </a>
 
-        <a th:href="@{/user/favorites}" class="btn btn-favorites">
+        <a th:href="@{/admin/users}" class="btn btn-secondary">
+            <span class="icon">👥</span>
+            ניהול משתמשים
+        </a>
+
+
+        <a th:href="@{/admin/reviews}" class="btn btn-warning">
             <span class="icon">⭐</span>
-            המשרות המועדפות שלי
-        </a>
-
-        <!-- 🆕 כפתור עריכת כישורים - במקום "חזרה לדף ראשי" -->
-        <a th:href="@{/user/profile/edit}" class="btn btn-edit">
-            <span class="icon">⚙️</span>
-            עריכת הכישורים שלי
+            ניהול ביקורות
         </a>
 
         <button type="button" class="btn btn-logout"
@@ -203,7 +214,7 @@
     </div>
 
     <div class="footer">
-        מחובר כ: <strong sec:authentication="name">user@example.com</strong>
+        מחובר כאדמין: <strong sec:authentication="name">admin@example.com</strong>
     </div>
 
     <form id="logoutForm" th:action="@{/logout}" method="post" style="display:none">

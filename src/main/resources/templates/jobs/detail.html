@@ -1,16 +1,43 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security"
+      lang="en">
 <head>
     <meta charset="UTF-8">
     <title th:text="${job.title}">Job</title>
     <style>
         body{font-family:Arial, sans-serif; margin:24px; max-width:900px}
         .meta{display:grid; grid-template-columns:160px 1fr; gap:8px 16px; margin:16px 0}
-        .btn{display:inline-block; padding:8px 12px; border:1px solid #333; text-decoration:none}
+        .btn{display:inline-block; padding:8px 12px; border:1px solid #333; text-decoration:none; cursor:pointer; background:white}
+        .btn:hover{background:#f0f0f0}
         pre { white-space: pre-wrap; font-family: inherit; }
         .muted{color:#777}
         .review{border-bottom:1px solid #eee; padding:10px 0}
         .stars{font-size:18px; letter-spacing:2px}
+
+        /* 🆕 Favorite button styles */
+        .favorite-btn {
+            background: none;
+            border: 2px solid #ffd700;
+            padding: 10px 20px;
+            font-size: 24px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+        .favorite-btn:hover {
+            transform: scale(1.1);
+        }
+        .favorite-btn.active {
+            background: #ffd700;
+        }
+        .action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 16px;
+        }
     </style>
 </head>
 <body>
@@ -28,8 +55,16 @@
     <div><b>Location:</b></div>
     <div th:text="${job.location != null and !#strings.isEmpty(job.location) ? job.location : '-'}">-</div>
 
-    <div><b>Salary:</b></div>
-    <div th:text="${(job.salaryMin != null ? job.salaryMin : '-') + ' - ' + (job.salaryMax != null ? job.salaryMax : '-') }">-</div>
+    <!-- ✅ Skills -->
+    <div><b>Skills:</b></div>
+    <div>
+        <div th:if="${job.skills != null and !job.skills.isEmpty()}">
+            <span th:each="s : ${job.skills}"
+                  class="skill-badge"
+                  th:text="${s.name}">Skill</span>
+        </div>
+        <div class="muted" th:unless="${job.skills != null and !job.skills.isEmpty()}">-</div>
+    </div>
 
     <div><b>Created at:</b></div>
     <div th:text="${#temporals.format(job.createdAt, 'yyyy-MM-dd HH:mm')}">date</div>
@@ -41,11 +76,20 @@
 <h3>Description</h3>
 <pre th:text="${job.description}">Description…</pre>
 
-<p style="margin-top: 16px">
+<div class="action-buttons">
     <a class="btn" th:href="${job.externalUrl}" target="_blank" rel="noopener noreferrer">
         Apply on company site
     </a>
-</p>
+
+    <!-- 🆕 Favorite button - רק למשתמשים מחוברים עם תפקיד USER -->
+    <button sec:authorize="hasRole('USER')"
+            class="favorite-btn"
+            id="favoriteBtn"
+            th:data-job-id="${job.id}"
+            onclick="toggleFavorite()">
+        ☆
+    </button>
+</div>
 
 <hr>
 
@@ -109,6 +153,52 @@
         <div th:if="${r.comment}" th:text="${r.comment}">comment</div>
     </div>
 </section>
+
+<!-- 🆕 JavaScript לניהול מועדפים -->
+<script th:inline="javascript">
+    const jobId = /*[[${job.id}]]*/ null;
+    const favoriteBtn = document.getElementById('favoriteBtn');
+    const csrfToken = /*[[${_csrf.token}]]*/ '';
+    const csrfHeader = /*[[${_csrf.headerName}]]*/ '';
+
+    // טעינת סטטוס התחלתי
+    if (favoriteBtn) {
+        checkFavoriteStatus();
+    }
+
+    function checkFavoriteStatus() {
+        fetch(`/jobs/${jobId}/favorite-status`)
+            .then(res => res.json())
+            .then(data => {
+                updateButton(data.favorite);
+            })
+            .catch(err => console.error('Error checking favorite status:', err));
+    }
+
+    function toggleFavorite() {
+        fetch(`/jobs/${jobId}/favorite`, {
+            method: 'POST',
+            headers: {
+                [csrfHeader]: csrfToken
+            }
+        })
+            .then(res => res.json())
+            .then(data => {
+                updateButton(data.favorite);
+            })
+            .catch(err => console.error('Error toggling favorite:', err));
+    }
+
+    function updateButton(isFavorite) {
+        if (isFavorite) {
+            favoriteBtn.textContent = '★'; // כוכב מלא
+            favoriteBtn.classList.add('active');
+        } else {
+            favoriteBtn.textContent = '☆'; // כוכב ריק
+            favoriteBtn.classList.remove('active');
+        }
+    }
+</script>
 
 </body>
 </html>
