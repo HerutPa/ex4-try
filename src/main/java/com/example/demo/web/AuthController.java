@@ -15,7 +15,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 public class AuthController {
 
+
+
     private final UserService userService;
+
     private final SkillRepository skillRepo;
     private final UserRepository userRepo;
 
@@ -63,17 +66,18 @@ public class AuthController {
                     form.getEmail(),
                     form.getPassword(),
                     form.getFullName(),
-                    form.getRole()
+                    form.getRole(),
+                    form.getSkills(),         // ← שמות ה-skills מהצ׳קבוקסים
+                    form.getFreeTextSkills()  // ← טקסט חופשי (פסיקים/נקודה-פסיק)
             );
-        } catch (IllegalArgumentException ex) { // למשל Email כבר קיים
-            // תוספת: הצמדת השגיאה לשדה האימייל כדי שיופיע ליד השדה
+        } catch (IllegalArgumentException ex) {
             binding.rejectValue("email", "exists", ex.getMessage());
-            // משאיר גם את ההודעה הכללית כפי שביקשת (לא מחליף—רק מוסיף)
             model.addAttribute("error", ex.getMessage());
             model.addAttribute("form", form);
             model.addAttribute("allSkills", skillRepo.findAll(Sort.by("name")));
             return "register";
         }
+
 
         // Flash + סמן ב-URL כדי להראות הודעת הצלחה בדף הלוגין
         ra.addFlashAttribute("msg", "Registration successful. You can log in now.");

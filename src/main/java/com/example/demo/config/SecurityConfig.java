@@ -21,7 +21,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // חייב להתאים להאש שמור ב-DB
+        return new BCryptPasswordEncoder();
     }
 
     @Bean

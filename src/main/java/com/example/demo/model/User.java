@@ -50,9 +50,9 @@ public class User {
     }
 
     @ManyToMany
-    @JoinTable(name="user_skills",
-            joinColumns=@JoinColumn(name="user_id"),
-            inverseJoinColumns=@JoinColumn(name="skill_id"))
+    @JoinTable(name = "user_skills",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "skill_id"))
     private Set<Skill> skills = new HashSet<>();
     public void setSkills(Set<Skill> skills){ this.skills = skills; }
 
