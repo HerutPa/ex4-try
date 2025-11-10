@@ -1,0 +1,65 @@
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="bg">
+  <!-- Animated gradient background -->
+  <div class="animated-bg"></div>
+
+  <!-- Simple floating particles (DIVs) -->
+  <div class="particles" id="particles"></div>
+
+  <style>
+    /* ===== Gradient background (fixed, always behind) ===== */
+    .animated-bg{
+      position:fixed;
+      inset:0;
+      background:linear-gradient(-45deg,#667eea,#764ba2,#6dd5fa,#2980b9);
+      background-size:400% 400%;
+      animation: gradientShift 18s ease infinite;
+      z-index:-10;
+      pointer-events:none;
+    }
+    @keyframes gradientShift{
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+
+    /* ===== Particles layer (fixed, above gradient) ===== */
+    .particles{
+      position:fixed; inset:0;
+      z-index:-9; pointer-events:none; overflow:hidden;
+    }
+    .particle{
+      position:absolute;
+      background:rgba(255,255,255,.8);
+      border-radius:50%;
+      animation: floatUp linear infinite;
+    }
+    @keyframes floatUp{
+      0%{transform:translateY(100vh) scale(1);}
+      100%{transform:translateY(-10vh) scale(0.8);}
+    }
+
+    /* ===== Ensure page content is above background ===== */
+    html, body { position: relative; }
+    main, .page-container, .container { position: relative; z-index: 0; }
+  </style>
+
+  <script>
+    // build lightweight DIV particles
+    (function(){
+      const container = document.getElementById('particles');
+      if (!container) return;
+      const total = 45;
+      for (let i = 0; i < total; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        const size = 2 + Math.random() * 3;
+        p.style.width = p.style.height = size + 'px';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDuration = 10 + Math.random() * 10 + 's';
+        p.style.animationDelay = -Math.random() * 10 + 's';
+        p.style.opacity = 0.3 + Math.random() * 0.7;
+        container.appendChild(p);
+      }
+    })();
+  </script>
+</div>

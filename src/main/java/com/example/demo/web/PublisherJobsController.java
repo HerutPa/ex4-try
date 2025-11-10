@@ -8,6 +8,8 @@ import com.example.demo.repository.JobCategoryRepository;
 import com.example.demo.repository.SkillRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.service.JobService;
+import com.example.demo.model.Review;
+import com.example.demo.repository.ReviewRepository;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -32,16 +34,8 @@ public class PublisherJobsController {
     private final JobCategoryRepository categoryRepo;
     private final UserRepository userRepo;
     private final SkillRepository skillRepo; // ✅ חדש
+    private final ReviewRepository reviewRepo; // ✅ חדש
 
-    public PublisherJobsController(JobService jobService,
-                                   JobCategoryRepository categoryRepo,
-                                   UserRepository userRepo,
-                                   SkillRepository skillRepo) { // ✅ חדש
-        this.jobService = jobService;
-        this.categoryRepo = categoryRepo;
-        this.userRepo = userRepo;
-        this.skillRepo = skillRepo; // ✅ חדש
-    }
 
     /** עמוד "העבודות שלי" של המפרסם */
     @GetMapping
@@ -108,6 +102,18 @@ public class PublisherJobsController {
         return "redirect:/publisher/jobs";
     }
 
+    /** תגובות למשרה ספציפית של המפרסם (עם בדיקת בעלות) */
+    @GetMapping("/{id}/reviews")
+    public String jobReviews(@PathVariable Long id, Principal principal, Model model) {
+        User publisher = findCurrentUser(principal);
+        Job job = jobService.getByIdAndPublisherOrThrow(id, publisher.getId()); // בדיקת בעלות
+        var reviews = reviewRepo.findByJobAndStatusOrderByCreatedAtDesc(job, Review.Status.APPROVED);
+        model.addAttribute("job", job);
+        model.addAttribute("reviews", reviews);
+        return "publisher/reviews/job-reviews"; // צור טמפלייט זה
+    }
+
+
     @PostMapping("/{id}")
     public String update(@PathVariable Long id,
                          @Valid @ModelAttribute("form") JobForm form,
@@ -149,6 +155,18 @@ public class PublisherJobsController {
         jobService.save(job);
         ra.addFlashAttribute("msg", "Job updated.");
         return "redirect:/publisher/jobs";
+    }
+
+    public PublisherJobsController(JobService jobService,
+                                   JobCategoryRepository categoryRepo,
+                                   UserRepository userRepo,
+                                   SkillRepository skillRepo,
+                                   ReviewRepository reviewRepo) { // ✅ הוסף פרמטר
+        this.jobService = jobService;
+        this.categoryRepo = categoryRepo;
+        this.userRepo = userRepo;
+        this.skillRepo = skillRepo;
+        this.reviewRepo = reviewRepo; // ✅ השמה
     }
 
     // טופס עריכה
@@ -220,7 +238,6 @@ public class PublisherJobsController {
         List<Long> ids = form.getSkillIds();
         if (ids != null && !ids.isEmpty()) {
             out.addAll(skillRepo.findAllById(ids));
-            return out;
         }
 
         String raw = form.getSkillsInput();
@@ -229,7 +246,7 @@ public class PublisherJobsController {
             for (String p : parts) {
                 String name = p.trim().replaceAll("\\s+", " ");
                 if (name.isEmpty()) continue;
-                Skill s = skillRepo.findByName(name)
+                Skill s = skillRepo.findByNameIgnoreCase(name)
                         .orElseGet(() -> skillRepo.save(new Skill(name)));
                 out.add(s);
             }

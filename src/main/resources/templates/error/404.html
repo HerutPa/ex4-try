@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 - Page Not Found</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: #fff;
+      border-radius: 20px;
+      padding: 50px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      max-width: 640px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 { color: #333; font-size: 2.4em; margin-bottom: 12px; }
+    .subtitle { color: #666; margin-bottom: 28px; line-height: 1.6; }
+    .btn {
+      display: inline-block;
+      margin: 8px;
+      padding: 14px 24px;
+      border-radius: 12px;
+      font-size: 1.1em;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all .25s ease;
+      box-shadow: 0 4px 15px rgba(102,126,234,0.3);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+    }
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(102,126,234,0.5);
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>404 - Page Not Found</h1>
+  <p class="subtitle">The page you're looking for doesn’t exist or was moved.</p>
+  <a th:href="@{/}" class="btn btn-primary">Back to Home</a>
+</div>
+</body>
+</html>

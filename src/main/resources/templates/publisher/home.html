@@ -1,12 +1,218 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="he">
-<head><meta charset="UTF-8"><title>publisher home page</title></head>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security"
+      lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publisher Home</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* ===== Reset ===== */
+        *{margin:0;padding:0;box-sizing:border-box}
+
+        /* ===== Page base (כהה כמו שאר הדפים) ===== */
+        body{
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x:hidden;
+            background:#0f0c29;
+            color:#fff;
+            min-height:100vh;
+        }
+
+        /* ===== Animated Background ===== */
+        .animated-bg{
+            position:fixed; inset:0;
+            background:linear-gradient(-45deg,#0f0c29,#302b63,#24243e,#141E30);
+            background-size:400% 400%;
+            animation:gradientShift 15s ease infinite;
+            z-index:-2;
+        }
+        @keyframes gradientShift{
+            0%{background-position:0% 50%}
+            50%{background-position:100% 50%}
+            100%{background-position:0% 50%}
+        }
+
+        /* ===== Floating Particles ===== */
+        .particles{ position:fixed; inset:0; z-index:-1; overflow:hidden; }
+        .particle{
+            position:absolute; width:4px; height:4px; background:rgba(255,255,255,.5);
+            border-radius:50%; animation:float linear infinite;
+        }
+        @keyframes float{
+            0%{ transform:translateY(100vh) rotate(0); opacity:0 }
+            10%{ opacity:1 }
+            90%{ opacity:1 }
+            100%{ transform:translateY(-100vh) rotate(360deg); opacity:0 }
+        }
+
+        /* ===== Layout ===== */
+        .container{
+            max-width:1100px; margin:0 auto; padding:30px 20px 80px;
+            position:relative; z-index:1;
+        }
+
+        /* ===== Header – זכוכית כמו בדפים האחרים ===== */
+        .header{
+            padding:18px 22px;
+            display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;
+            background:rgba(255,255,255,.06);
+            border:1px solid rgba(255,255,255,.12);
+            border-radius:16px;
+            backdrop-filter:blur(10px);
+            box-shadow:0 10px 30px rgba(0,0,0,.35);
+            margin:22px 0 26px;
+        }
+        .logo{
+            display:flex; align-items:center; gap:12px;
+            font-weight:900; letter-spacing:.2px;
+            background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+            -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+            font-size:1.6rem;
+        }
+        .user-chip{
+            padding:8px 12px; border-radius:999px; font-weight:700; font-size:.95rem;
+            background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:#fff;
+        }
+
+        /* ===== Main panel (כרטיס זכוכית גדול) ===== */
+        .panel{
+            background:rgba(255,255,255,.06);
+            border:1px solid rgba(255,255,255,.12);
+            border-radius:20px;
+            backdrop-filter:blur(12px);
+            box-shadow:0 20px 60px rgba(0,0,0,.35);
+            padding:36px 28px;
+        }
+
+        .badge{
+            display:inline-flex; align-items:center; gap:8px;
+            background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+            color:#fff; padding:8px 16px; border-radius:18px; font-weight:800; font-size:.9rem;
+            box-shadow:0 6px 18px rgba(102,126,234,.35);
+            margin-bottom:18px;
+        }
+
+        h1{
+            font-size:2.1rem; margin-bottom:8px; line-height:1.2; font-weight:900;
+            background:linear-gradient(135deg,#dfe3ff 0%,#ffffff 60%);
+            -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        .subtitle{ color:rgba(255,255,255,.85); font-size:1.05rem; margin-bottom:18px; }
+
+        /* ===== Alerts ===== */
+        .alert{
+            background:rgba(39,174,96,.12);
+            border:1px solid rgba(39,174,96,.35);
+            color:#c9ffd6;
+            padding:12px 14px; border-radius:12px; font-weight:700; margin:12px 0 8px;
+            backdrop-filter:blur(8px);
+        }
+
+        /* ===== Buttons ===== */
+        .buttons{
+            display:flex; flex-wrap:wrap; gap:14px; margin:26px 0 8px;
+        }
+        .btn{
+            display:inline-flex; align-items:center; gap:10px;
+            padding:14px 22px; border-radius:12px; font-weight:800; text-decoration:none; letter-spacing:.2px;
+            transition:.25s; border:1px solid transparent;
+            box-shadow:0 8px 24px rgba(0,0,0,.25);
+        }
+        .btn-primary{
+            background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+            color:#fff; border-color:rgba(255,255,255,.12);
+        }
+        .btn-primary:hover{ transform:translateY(-3px); box-shadow:0 14px 32px rgba(102,126,234,.55); }
+        .btn-logout{
+            background:rgba(255,255,255,.08);
+            color:#fff; border:1px solid rgba(255,255,255,.18);
+        }
+        .btn-logout:hover{ transform:translateY(-3px); box-shadow:0 14px 32px rgba(0,0,0,.35); }
+
+        .footer-note{
+            margin-top:18px; padding-top:14px; border-top:1px solid rgba(255,255,255,.15);
+            color:rgba(255,255,255,.8); font-size:.95rem;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width:680px){
+            h1{ font-size:1.7rem; }
+            .buttons{ flex-direction:column; }
+            .btn{ width:100%; justify-content:center; }
+        }
+    </style>
+</head>
 <body>
-<h1>שלום מפרסם</h1>
-<p><a th:href="@{/publisher/jobs}">Managing my jobs</a></p>
-<a href="#" onclick="document.getElementById('logoutForm').submit(); return false;">התנתקות</a>
-<form id="logoutForm" th:action="@{/logout}" method="post" style="display:none">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-</form>
+
+<!-- רקע נע + חלקיקים -->
+<div class="animated-bg"></div>
+<div class="particles" id="particles"></div>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">
+            <i class="fa-solid fa-bullhorn"></i> Publisher Panel
+        </div>
+        <div class="user-chip">
+            <i class="fa-regular fa-user"></i>
+            <span sec:authentication="name">publisher@example.com</span>
+        </div>
+
+        <button type="button" class="btn btn-logout"
+                onclick="document.getElementById('logoutForm').submit();">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Logout
+        </button>
+    </div>
+
+    <!-- Main -->
+    <div class="panel">
+        <div class="badge"><i class="fa-solid fa-bullhorn"></i> PUBLISHER</div>
+
+        <h1>Hello Publisher! <span sec:authentication="name"></span></h1>
+        <p class="subtitle">Welcome to your job management panel</p>
+
+        <!-- הודעת הצלחה אם יש -->
+        <div th:if="${msg}" class="alert" th:text="${msg}"></div>
+
+        <div class="buttons">
+            <a th:href="@{/publisher/jobs}" class="btn btn-primary">
+                <i class="fa-solid fa-briefcase"></i>
+                Manage My Jobs
+            </a>
+        </div>
+
+        <form id="logoutForm" th:action="@{/logout}" method="post" style="display:none">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        </form>
+    </div>
+</div>
+
+<!-- Footer include -->
+<div th:replace="fragments/footer :: footer"></div>
+
+<!-- חלקיקים (JS קטן) -->
+<script>
+    const container = document.getElementById('particles');
+    if (container) {
+        const total = 40; // כמות חלקיקים
+        for (let i = 0; i < total; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.animationDuration = 10 + Math.random() * 10 + 's';
+            p.style.animationDelay = -Math.random() * 10 + 's';
+            p.style.opacity = Math.random();
+            p.style.width = p.style.height = 3 + Math.random() * 3 + 'px';
+            container.appendChild(p);
+        }
+    }
+</script>
 </body>
+<div th:replace="fragments/footer :: footer"></div>
 </html>

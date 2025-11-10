@@ -2,94 +2,57 @@ package com.example.demo.service;
 
 import com.example.demo.model.Job;
 import com.example.demo.model.User;
-import com.example.demo.repository.JobRepository;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.model.UserFavorite;
+import com.example.demo.repository.UserFavoriteRepository;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class FavoriteService {
 
-    private final UserRepository userRepo;
-    private final JobRepository jobRepo;
+    private final UserFavoriteRepository favoriteRepo;
 
-    public FavoriteService(UserRepository userRepo, JobRepository jobRepo) {
-        this.userRepo = userRepo;
-        this.jobRepo = jobRepo;
+    public FavoriteService(UserFavoriteRepository favoriteRepo) {
+        this.favoriteRepo = favoriteRepo;
     }
 
     /**
-     * Toggle favorite: אם קיים - מסיר, אם לא קיים - מוסיף
-     * @return true אם הוסיף, false אם הסיר
+     * בדיקה אם משרה במועדפים
+     */
+    public boolean isFavorite(User user, Job job) {
+        return favoriteRepo.existsByUserAndJob(user, job);
+    }
+
+    /**
+     * הוספה/הסרה של משרה מהמועדפים (Toggle)
      */
     @Transactional
-    public boolean toggleFavorite(Long userId, Long jobId) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-        Job job = jobRepo.findById(jobId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Job not found"));
-
-        if (user.isFavorite(job)) {
-            user.removeFavoriteJob(job);
-            userRepo.save(user);
-            return false; // removed
+    public boolean toggleFavorite(User user, Job job) {
+        if (favoriteRepo.existsByUserAndJob(user, job)) {
+            // אם קיים - מוחקים
+            favoriteRepo.deleteByUserAndJob(user, job);
+            return false; // לא במועדפים יותר
         } else {
-            user.addFavoriteJob(job);
-            userRepo.save(user);
-            return true; // added
+            // אם לא קיים - מוסיפים
+            UserFavorite fav = new UserFavorite(user, job);
+            favoriteRepo.save(fav);
+            return true; // נוסף למועדפים
         }
     }
 
     /**
-     * בדיקה האם משרה מסוימת היא מועדפת עבור משתמש
+     * קבלת כל המשרות המועדפות של משתמש
      */
-    @Transactional(readOnly = true)
-    public boolean isFavorite(Long userId, Long jobId) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-        Job job = jobRepo.findById(jobId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Job not found"));
-
-        return user.isFavorite(job);
+    public Page<Job> getFavoriteJobs(User user, Pageable pageable) {
+        return favoriteRepo.findFavoriteJobsByUser(user, pageable);
     }
 
     /**
-     * קבלת כל המשרות המועדפות של משתמש (עם Pagination)
+     * ספירת מועדפים
      */
-    @Transactional(readOnly = true)
-    public Page<Job> getFavoriteJobs(Long userId, Pageable pageable) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-        List<Job> favorites = new ArrayList<>(user.getFavoriteJobs());
-
-        // Manual pagination מכיוון שזה Set
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), favorites.size());
-
-        List<Job> pageContent = favorites.subList(start, end);
-
-        return new PageImpl<>(pageContent, pageable, favorites.size());
-    }
-
-    /**
-     * ספירת משרות מועדפות למשתמש
-     */
-    @Transactional(readOnly = true)
-    public long countFavorites(Long userId) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-        return user.getFavoriteJobs().size();
+    public long countFavorites(User user) {
+        return favoriteRepo.countByUser(user);
     }
 }

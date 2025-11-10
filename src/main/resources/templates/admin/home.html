@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="https://www.thymeleaf.org/extras/spring-security"
-      lang="he" dir="rtl">
+      lang="en" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>פאנל ניהול - אדמין</title>
+    <title>Admin Panel</title>
     <style>
         * {
             margin: 0;
@@ -179,11 +179,11 @@
 </head>
 <body>
 <div class="container">
-    <div class="admin-badge">👑 ADMIN PANEL</div>
+    <div class="admin-badge">ADMIN PANEL</div>
 
     <div class="welcome-section">
-        <h1>שלום <span class="user-name" sec:authentication="name">אדמין</span>! 👨‍💼</h1>
-        <p class="subtitle">ברוך הבא לפאנל הניהול</p>
+        <h1>Hello, <span class="user-name" sec:authentication="name">ADMIN</span></h1>
+        <p class="subtitle">Welcome to the admin panel</p>
     </div>
 
     <!-- הודעת הצלחה אם יש -->
@@ -192,29 +192,29 @@
     <div class="buttons-container">
         <a th:href="@{/admin/jobs}" class="btn btn-primary">
             <span class="icon">💼</span>
-            ניהול משרות
+            Manage Jobs
         </a>
 
         <a th:href="@{/admin/users}" class="btn btn-secondary">
             <span class="icon">👥</span>
-            ניהול משתמשים
+            Manage Users
         </a>
 
 
         <a th:href="@{/admin/reviews}" class="btn btn-warning">
             <span class="icon">⭐</span>
-            ניהול ביקורות
+            Manage Reviews
         </a>
 
         <button type="button" class="btn btn-logout"
                 onclick="document.getElementById('logoutForm').submit();">
             <span class="icon">🚪</span>
-            התנתקות מהמערכת
+            Logout
         </button>
     </div>
 
     <div class="footer">
-        מחובר כאדמין: <strong sec:authentication="name">admin@example.com</strong>
+        Logged in as admin: <strong sec:authentication="name">admin@example.com</strong>
     </div>
 
     <form id="logoutForm" th:action="@{/logout}" method="post" style="display:none">

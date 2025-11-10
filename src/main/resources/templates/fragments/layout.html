@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security"
+      lang="en" dir="ltr"
+      th:fragment="content(content, pageTitle)">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title th:text="${pageTitle}">App</title>
+
+  <!-- CSS גלובלי -->
+  <link rel="stylesheet" th:href="@{/app.css}">
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<!-- רקע נע + חלקיקים -->
+<div class="animated-bg"></div>
+<div class="particles" id="particles"></div>
+
+<!-- התוכן הספציפי לעמוד -->
+<main th:insert="${content}"></main>
+
+<!-- פוטר משותף -->
+<div th:replace="fragments/footer :: footer"></div>
+
+</body>
+</html>

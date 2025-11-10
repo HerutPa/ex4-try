@@ -18,11 +18,13 @@ import java.time.Instant;
                 @Index(name = "idx_users_email",     columnList = "email"),
         }
 )
+
 public class User {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Email @NotBlank
+    @Email
+    @NotBlank
     @Column(nullable = false, length = 200)
     private String email;
 
@@ -31,7 +33,7 @@ public class User {
     private String passwordHash;
 
     @NotBlank
-    @Column(name="full_name", nullable = false, length = 100, unique = true)
+    @Column(name="full_name", nullable = false, length = 100)
     private String fullName;
 
     @Enumerated(EnumType.STRING)
@@ -50,11 +52,16 @@ public class User {
     }
 
     @ManyToMany
-    @JoinTable(name = "user_skills",
+    @JoinTable(
+            name = "user_skills",
             joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "skill_id"))
+            inverseJoinColumns = @JoinColumn(name = "skill_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "skill_id"})
+    )
     private Set<Skill> skills = new HashSet<>();
+
     public void setSkills(Set<Skill> skills){ this.skills = skills; }
+
     public Set<Skill> getSkills() { return skills; }
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)

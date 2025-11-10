@@ -1,61 +1,253 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8">
-    <title>Jobs</title>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/extras/spring-security"
+      lang="en" dir="ltr"
+      th:replace="fragments/layout :: content(~{::section}, 'Open Jobs')">
+
+<section>
     <style>
-        body{font-family:Arial, sans-serif; margin:24px}
-        table{border-collapse:collapse; width:100%}
-        th,td{border:1px solid #ddd; padding:8px; vertical-align: top;}
-        th{background:#f4f4f4; text-align:left}
-        .pager a{margin-right:8px}
-        .muted{color:#666; font-size: 12px}
+        /* ===== Filters Bar — polished to match cards/header ===== */
+        .filters-bar{
+            display:grid; gap:12px;
+            grid-template-columns: 1.1fr 260px 140px 140px;
+            align-items:center;
+            margin:24px 0 18px;
+            padding:14px;
+            border-radius:20px;
+            background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+            border:1px solid rgba(255,255,255,.16);
+            box-shadow: 0 14px 36px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.06);
+            backdrop-filter: blur(10px);
+        }
+        @media (max-width: 980px){
+            .filters-bar{ grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 640px){
+            .filters-bar{ grid-template-columns: 1fr; }
+        }
+
+        .filters-input, .filters-select, .filters-btn, .filters-clear{
+            height:46px; width:100%;
+            border:none; border-radius:14px;
+            background: rgba(255,255,255,.10);
+            color:#fff; padding:0 14px;
+            font: 600 0.98rem/1.1 inherit;
+            outline:none;
+            transition: transform .08s ease, box-shadow .18s ease, background .18s ease, filter .18s ease;
+        }
+        .filters-input::placeholder{ color: rgba(255,255,255,.7); }
+
+        .input-wrap{ position:relative; }
+        .input-wrap .fa-magnifying-glass{
+            position:absolute; left:12px; top:50%; transform:translateY(-50%);
+            opacity:.9; font-size:.95rem; pointer-events:none;
+            filter: drop-shadow(0 1px 0 rgba(0,0,0,.25));
+        }
+        .filters-input{ padding-left:38px; }
+
+        .filters-input:focus, .filters-select:focus{
+            background: rgba(255,255,255,.14);
+            box-shadow: 0 0 0 3px rgba(118,75,162,.28);
+            transform: translateY(-1px);
+        }
+
+        .select-wrap{ position:relative; }
+        .filters-select{
+            appearance:none; -webkit-appearance:none; -moz-appearance:none;
+            padding-right:36px; cursor:pointer;
+        }
+        .select-wrap .fa-chevron-down{
+            position:absolute; right:12px; top:50%; transform:translateY(-50%);
+            opacity:.9; pointer-events:none; font-size:.9rem;
+            filter: drop-shadow(0 1px 0 rgba(0,0,0,.25));
+        }
+        .filters-select option{ color:#0e0b1f; } /* כהה בתוך הרשימה */
+
+        .filters-btn{
+            display:flex; align-items:center; justify-content:center; gap:10px;
+            background: linear-gradient(135deg,#6a6eea 0%, #7a4bb6 100%);
+            box-shadow: 0 10px 24px rgba(118,75,162,.35), inset 0 1px 0 rgba(255,255,255,.12);
+            text-shadow: 0 1px 0 rgba(0,0,0,.35);
+            font-weight:800; letter-spacing:.2px;
+            border:1px solid rgba(255,255,255,.08);
+            cursor:pointer;
+        }
+        .filters-btn:hover{ filter: brightness(1.06); transform: translateY(-1px); }
+        .filters-btn:active{ transform: translateY(0); }
+
+        .filters-clear{
+            display:flex; align-items:center; justify-content:center; gap:8px;
+            background: rgba(255,255,255,.10);
+            border:1px solid rgba(255,255,255,.14);
+            font-weight:700; cursor:pointer;
+        }
+        .filters-clear:hover{ filter: brightness(1.05); transform: translateY(-1px); }
+        .filters-clear .fa-xmark{ font-size:.95rem; }
+
+        .filter-info{
+            margin-top:6px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+            color:rgba(255,255,255,.85); font-weight:600;
+        }
+        .filter-chip{
+            display:inline-flex; gap:8px; align-items:center;
+            padding:6px 12px; border-radius:999px;
+            background: rgba(255,255,255,.10);
+            border:1px solid rgba(255,255,255,.16);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+        }
+
+        /* header spacing alignment */
+        .header{ display:flex; align-items:center; gap:12px; justify-content:space-between; }
+        .header .page-title{ margin:0; }
+        .header .btn{ margin-left:auto; }
     </style>
-</head>
-<body>
-<h1>Open Jobs</h1>
 
-<table>
-    <thead>
-    <tr>
-        <th>Title</th>
-        <th>Company</th>
-        <th>Category</th>
-        <th>Location</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="j : ${page.content}">
-        <td>
-            <a th:href="@{|/jobs/${j.id}|}" th:text="${j.title}">Title</a>
-        </td>
-        <td th:text="${j.company} ?: '-'">Company</td> <!-- NEW -->
-        <td th:text="${j.category != null ? j.category.name : '-'}">Category</td>
-        <td th:text="${j.location} ?: '-'">Location</td>
-    </tr>
-    <tr th:if="${#lists.isEmpty(page.content)}">
-        <td colspan="6">No jobs yet.</td>
-    </tr>
-    </tbody>
-</table>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="page-title">Open Jobs</h1>
 
-<div sec:authorize="hasRole('ADMIN')" style="margin: 12px 0;">
-    <form th:action="@{/jobs/import-csv}" method="post">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-    </form>
-    <div th:if="${msg}" th:text="${msg}" style="color: green; margin-top: 8px;"></div>
-    <div th:if="${error}" th:text="${error}" style="color: red; margin-top: 8px;"></div>
-</div>
+            <div style="display:flex; gap:10px;">
+                <a th:href="@{/user/home}" sec:authorize="hasRole('USER')" class="btn btn-primary">
+                    Home Page
+                </a>
+                <a th:href="@{/}" sec:authorize="isAnonymous()" class="btn btn-primary">
+                    Back to Homepage
+                </a>
+            </div>
+        </div>
 
-<div class="pager" style="margin-top:12px" th:if="${page.totalPages > 1}">
-    <span th:text="'Page ' + (${page.number}+1) + ' / ' + ${page.totalPages}">Page</span>
-    <div>
-        <a th:if="${page.hasPrevious()}"
-           th:href="@{/jobs(size=${page.size}, page=${page.number - 1})}">Prev</a>
-        <a th:if="${page.hasNext()}"
-           th:href="@{/jobs(size=${page.size}, page=${page.number + 1})}">Next</a>
+        <!-- Search & Filters -->
+        <form th:action="@{/jobs}" method="get" class="filters-bar">
+            <!-- חיפוש -->
+            <div class="input-wrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input class="filters-input"
+                       type="text"
+                       name="keyword"
+                       th:value="${keyword}"
+                       placeholder="Search jobs..." />
+            </div>
+
+            <!-- קטגוריה -->
+            <div class="select-wrap">
+                <select class="filters-select" name="category">
+                    <option value="">All Categories</option>
+                    <option th:each="cat : ${categories}"
+                            th:value="${cat}"
+                            th:text="${cat}"
+                            th:selected="${cat == selectedCategory}">
+                    </option>
+                </select>
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+
+            <!-- חפש -->
+            <button type="submit" class="filters-btn">
+                <i class="fa-solid fa-search"></i>
+                <span>Search</span>
+            </button>
+
+            <!-- נקה מסננים (מציגים רק אם יש) -->
+            <a th:href="@{/jobs}" class="filters-clear" th:if="${selectedCategory} or ${keyword}">
+                <i class="fa-solid fa-xmark"></i>
+                <span>Clear</span>
+            </a>
+        </form>
+
+        <!-- תצוגת המסננים הפעילים (אופציונלי) -->
+        <div class="filter-info" th:if="${selectedCategory} or ${keyword}">
+            <span>Filters:</span>
+            <span th:if="${keyword}" class="filter-chip">
+        <i class="fa-solid fa-quote-left"></i>
+        <span th:text="${keyword}">keyword</span>
+      </span>
+            <span th:if="${selectedCategory}" class="filter-chip">
+        <i class="fa-solid fa-tag"></i>
+        <span th:text="${selectedCategory}">Category</span>
+      </span>
+        </div>
+
+        <!-- Alerts -->
+        <div th:if="${msg}" class="alert alert-success" th:text="${msg}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <!-- Jobs list -->
+        <div th:if="${page != null and !#lists.isEmpty(page.content)}" class="jobs-grid">
+            <div th:each="job : ${page.content}" class="job-card">
+                <div class="card-top">
+                    <div class="card-left">
+                        <div class="brand-dot" aria-hidden="true"></div>
+                        <div class="title-wrap">
+                            <div class="card-title">
+                                <a th:href="@{|/jobs/${job.id}|}" th:text="${job.title}">Job Title</a>
+                            </div>
+                            <div class="company-line" th:text="${job.company} ?: 'Company'">Company</div>
+                        </div>
+                    </div>
+
+                    <span th:if="${job.category != null}" class="badge" th:text="${job.category.name}">Category</span>
+                </div>
+
+                <div class="meta-row">
+          <span th:if="${job.location}" class="meta-chip">
+            <i class="fa-solid fa-location-dot"></i>
+            <span th:text="${job.location}">Location</span>
+          </span>
+
+                    <span th:if="${job.salaryMin != null or job.salaryMax != null}" class="meta-chip">
+            <i class="fa-solid fa-shekel-sign"></i>
+            <span>
+              <span th:if="${job.salaryMin != null}" th:text="${#numbers.formatInteger(job.salaryMin,0,'COMMA')}">Min</span>
+              <span th:if="${job.salaryMin != null and job.salaryMax != null}"> – </span>
+              <span th:if="${job.salaryMax != null}" th:text="${#numbers.formatInteger(job.salaryMax,0,'COMMA')}">Max</span>
+              <span>₪</span>
+            </span>
+          </span>
+
+                    <span class="meta-chip">
+            <i class="fa-regular fa-calendar"></i>
+            <span th:text="${#temporals.format(job.createdAt, 'dd/MM/yyyy')}">Date</span>
+          </span>
+                </div>
+
+                <div class="card-desc" th:text="${job.description}">Job description…</div>
+
+                <div class="card-bottom">
+                    <span class="pill" th:text="${job.active ? 'Active' : 'Inactive'}">Active</span>
+                    <a th:href="@{|/jobs/${job.id}|}" class="view-btn">
+                        <span>View Details</span>
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty state -->
+        <div th:if="${page == null or #lists.isEmpty(page.content)}" class="empty-state">
+            <h2>No jobs available at the moment</h2>
+            <p>Check back soon for new jobs!</p>
+        </div>
+
+        <!-- Pagination (שומרת פרמטרים קדימה) -->
+        <div th:if="${page != null && page.totalPages > 1}" class="pagination">
+            <div class="pagination-info">
+                Page <strong th:text="${page.number + 1}">1</strong>
+                of <strong th:text="${page.totalPages}">1</strong> |
+                Total <strong th:text="${page.totalElements}">0</strong> Jobs
+            </div>
+
+            <div class="pagination-buttons">
+                <a th:if="${page.hasPrevious()}"
+                   th:href="@{/jobs(size=${page.size}, page=${page.number - 1}, keyword=${keyword}, category=${selectedCategory})}"
+                   class="page-btn">← Previous</a>
+
+                <a th:if="${page.hasNext()}"
+                   th:href="@{/jobs(size=${page.size}, page=${page.number + 1}, keyword=${keyword}, category=${selectedCategory})}"
+                   class="page-btn">Next →</a>
+            </div>
+        </div>
+
     </div>
-</div>
-
-</body>
+</section>
 </html>

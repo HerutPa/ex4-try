@@ -4,6 +4,7 @@ import com.example.demo.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -57,18 +58,23 @@ public class SecurityConfig {
                 .authenticationProvider(authProvider)
 
                 .authorizeHttpRequests(auth -> auth
+                        // סטטיים ושגיאות — חופשי
                         .requestMatchers("/", "/index", "/login",
                                 "/register", "/register/**",
-                                "/css/**", "/js/**", "/images/**", "/webjars/**", "/error").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/register").permitAll() // חשוב
+                                "/css/**", "/js/**", "/images/**", "/webjars/**",
+                                "/error", "/error/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/register").permitAll()
+
+                        // הרשאות אזוריות
                         .requestMatchers("/jobs/**").hasAnyRole("USER","ADMIN")
                         .requestMatchers("/publisher/**").hasAnyRole("PUBLISHER","ADMIN")
                         .requestMatchers("/post-login").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/**").hasAnyRole("USER","PUBLISHER","ADMIN")
+
+                        // כל היתר דורש אימות
                         .anyRequest().authenticated()
                 )
-
 
                 .formLogin(f -> f
                         .loginPage("/login").permitAll()
@@ -86,6 +92,16 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .permitAll()
+                )
+
+                // טיפול בשגיאות אבטחה:
+                .exceptionHandling(ex -> ex
+                        // משתמש לא מאומת (401) → להפניה למסך התחברות עם פרמטר
+                        .authenticationEntryPoint((req, res, e) ->
+                                res.sendRedirect("/login?unauth=1"))
+                        // אין הרשאה (403) → נשלח קוד 403 כדי ש-Spring ירים את templates/error/403.html
+                        .accessDeniedHandler((req, res, e) ->
+                                res.sendError(HttpStatus.FORBIDDEN.value()))
                 )
 
                 // למנוע הצגה מקאש לאחר Logout (Back בדפדפן)

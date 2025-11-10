@@ -1,20 +1,264 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="he">
-<head><meta charset="UTF-8"><title>New Job</title></head>
-<body>
-<h1>New Job</h1>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>משרה חדשה</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<!-- שגיאות אם יש -->
-<div th:if="${#fields.hasAnyErrors()}" style="color:red; margin-bottom:10px" th:object="${form}">
-  <ul><li th:each="e : ${#fields.allErrors()}" th:text="${e}">err</li></ul>
+  <style>
+    /* ===== Reset ===== */
+    *{margin:0;padding:0;box-sizing:border-box}
+
+    /* ===== Base (כהה כמו שאר הדפים) ===== */
+    body{
+      font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      overflow-x:hidden;
+      background:#0f0c29;
+      color: #ffffff;
+      min-height:100vh;
+      position:relative;
+    }
+
+    /* ===== Animated Background ===== */
+    .animated-bg{
+      position:fixed; inset:0;
+      background:linear-gradient(-45deg,#0f0c29,#302b63,#24243e,#141E30);
+      background-size:400% 400%;
+      animation:gradientShift 15s ease infinite;
+      z-index:-2;
+    }
+    @keyframes gradientShift{
+      0%{background-position:0% 50%}
+      50%{background-position:100% 50%}
+      100%{background-position:0% 50%}
+    }
+
+    /* ===== Floating Particles ===== */
+    .particles{ position:fixed; inset:0; z-index:-1; overflow:hidden; }
+    .particle{
+      position:absolute; width:4px; height:4px; background:rgba(255,255,255,.5);
+      border-radius:50%; animation:float linear infinite;
+    }
+    @keyframes float{
+      0%{ transform:translateY(100vh) rotate(0); opacity:0 }
+      10%{ opacity:1 }
+      90%{ opacity:1 }
+      100%{ transform:translateY(-100vh) rotate(360deg); opacity:0 }
+    }
+
+    /* ===== Layout ===== */
+    .container{ max-width:1100px; margin:0 auto; padding:30px 20px 90px; position:relative; z-index:1; }
+
+    /* ===== Header (glass) ===== */
+    .header{
+      padding:18px 22px;
+      display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:16px; backdrop-filter:blur(10px);
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+      margin:22px 0 26px;
+    }
+    .title{
+      font-size:1.8rem; font-weight:900; line-height:1.2;
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .back-link{
+      display:inline-flex; align-items:center; gap:10px;
+      padding:10px 16px; border-radius:10px; font-weight:800; text-decoration:none;
+      background:rgba(255,255,255,.08); color:#fff;
+      border:1px solid rgba(255,255,255,.18);
+      transition:.25s; box-shadow:0 8px 24px rgba(0,0,0,.25);
+    }
+    .back-link:hover{ transform:translateY(-3px); box-shadow:0 14px 32px rgba(0,0,0,.35); }
+    .back-link i{ font-size:1rem }
+
+    /* ===== Glass Card for the form ===== */
+    .glass-card{
+      background:rgba(255,255,255,.06);
+      color: #0e0e0e;
+      border-radius:18px;
+      padding:22px;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow:0 8px 28px rgba(0,0,0,.35);
+    }
+
+    .section-head{
+      display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+      padding-bottom:10px; margin-bottom:16px;
+      border-bottom:1px solid rgba(255,255,255,.12);
+    }
+    .section-head h2{
+      font-size:1.15rem; font-weight:900; letter-spacing:.2px;
+      color:#fff; margin:0;
+    }
+
+    /* ===== Buttons ===== */
+    .actions{ display:flex; gap:12px; flex-wrap:wrap; margin-top:18px; }
+    .btn{
+      display:inline-flex; align-items:center; gap:10px;
+      padding:12px 18px; border-radius:10px; font-weight:800; text-decoration:none; letter-spacing:.2px;
+      border:none; cursor:pointer; transition:.2s;
+    }
+    .btn-primary{
+      background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff;
+      box-shadow:0 6px 18px rgba(102,126,234,.35);
+    }
+    .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 10px 24px rgba(102,126,234,.5); }
+    .btn-ghost{
+      background:rgba(255,255,255,.08); color:#fff;
+      border:1px solid rgba(255,255,255,.18);
+    }
+    .btn-ghost:hover{ transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.25); }
+
+    /* ===== Form glass overrides (ייסגר בסקופ .glass-form) ===== */
+    .glass-form .form-section{
+      background:rgba(255,255,255,.06) !important;
+      border:1px solid rgba(255,255,255,.18) !important;
+      color:#fff !important;
+    }
+    .glass-form .form-section legend{
+      color:#fff !important;
+    }
+    .glass-form label{ color:#eaeaea !important; }
+
+    .glass-form input[type="text"],
+    .glass-form input[type="url"],
+    .glass-form input[type="number"],
+    .glass-form textarea,
+    .glass-form select{
+      width:100%;
+      background:rgba(255,255,255,.08) !important;
+      color:#fff !important;
+      border:1px solid rgba(255,255,255,.18) !important;
+      border-radius:10px !important;
+      padding:12px !important;
+      outline:none !important;
+      transition:border .2s, box-shadow .2s;
+      box-shadow: inset 0 0 0 9999px rgba(255,255,255,0.0);
+    }
+    .glass-form input::placeholder,
+    .glass-form textarea::placeholder{ color:rgba(255,255,255,.6) !important; }
+    .glass-form input:focus,
+    .glass-form textarea:focus,
+    .glass-form select:focus{
+      border-color:#8fa2ff !important;
+      box-shadow:0 0 0 3px rgba(143,162,255,.25) !important;
+    }
+
+    .glass-form .meta,
+    .glass-form .hint-text{ color:rgba(255,255,255,.8) !important; }
+    .glass-form .error-text{ color:#ff9e9e !important; font-weight:700; }
+
+    .glass-form select[multiple]{
+      height:170px !important;
+      background:rgba(255,255,255,.08) !important;
+    }
+    .glass-form .selected-count{
+      background:linear-gradient(135deg,#667eea,#764ba2) !important;
+      box-shadow:0 6px 18px rgba(102,126,234,.35);
+    }
+
+    /* ריווח לטופס */
+    form .group-gap > * + *{ margin-top:16px; }
+
+    /* Responsive */
+    @media (max-width:700px){
+      .title{ font-size:1.5rem; }
+      .glass-card{ padding:18px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- רקע נע + חלקיקים -->
+<div class="animated-bg"></div>
+<div class="particles" id="particles"></div>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="title"><i class="fa-solid fa-briefcase"></i> New Job</div>
+    <a th:href="@{/publisher/jobs}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back To List</a>
+  </div>
+
+  <!-- Form Card -->
+  <div class="glass-card">
+    <div class="section-head">
+      <h2><i class="fa-regular fa-pen-to-square"></i> Create a new job</h2>
+    </div>
+
+    <div th:if="${#fields.hasAnyErrors()}" class="alert" style="
+         background:rgba(255,255,255,.08);
+         border:1px solid rgba(255,255,255,.18);
+         color:#fff; border-radius:12px; padding:14px 18px; font-weight:600; margin-bottom:16px;">
+      <ul class="mb-0" th:object="${form}" style="margin:0; padding-left:18px;">
+        <li th:each="e : ${#fields.allErrors()}" th:text="${e}">err</li>
+      </ul>
+    </div>
+
+    <form th:action="@{/publisher/jobs}" th:object="${form}" method="post" class="group-gap">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+      <!-- פרגמנט הטופס (עם ה-CSS הפנימי שלו) -->
+      <div class="glass-form" id="formScope" th:replace="~{publisher/jobs/jobs_form :: jobForm}"></div>
+
+      <!-- Overrides אחרי הפרגמנט כדי לנצח את ה-style שבתוכו -->
+      <style>
+        /* מחזק ספציפיות אחרי ההחלפה */
+        #formScope .form-field input,
+        #formScope .form-field textarea,
+        #formScope .form-field select{
+          background:rgba(255,255,255,.08) !important;
+          color:#fff !important;
+          border:1px solid rgba(255,255,255,.18) !important;
+          border-radius:10px !important;
+          padding:12px !important;
+        }
+        #formScope .form-field label{ color:#eaeaea !important; }
+        #formScope .form-section{
+          background:rgba(255,255,255,.06) !important;
+          border:1px solid rgba(255,255,255,.18) !important;
+        }
+        #formScope .form-section legend{ color:#fff !important; }
+        #formScope .error-text{ color:#ff9e9e !important; font-weight:700; }
+        #formScope .hint-text{ color:rgba(255,255,255,.8) !important; }
+        #formScope .selected-count{
+          background:linear-gradient(135deg,#667eea,#764ba2) !important;
+          color:#fff !important;
+          border:none !important;
+        }
+      </style>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Create Job</button>
+        <a th:href="@{/publisher/jobs}" class="btn btn-ghost"><i class="fa-solid fa-xmark"></i> Cancel</a>
+      </div>
+    </form>
+  </div>
 </div>
 
-<form th:action="@{/publisher/jobs}" th:object="${form}" method="post">
-  <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-  <!-- טוען את הפרגמנט (שימי לב לשם הקובץ שנכון אצלך) -->
-  <div th:replace="~{publisher/jobs/jobs_form :: jobForm}"></div>
-  <button type="submit">Create</button>
-  <a th:href="@{/publisher/jobs}">Cancel</a>
-</form>
+<!-- Footer (תמיד בפנים, בסוף ה-body) -->
+<div th:replace="fragments/footer :: footer"></div>
+
+<!-- חלקיקים (JS קטן) -->
+<script>
+  const container = document.getElementById('particles');
+  if (container) {
+    const total = 40;
+    for (let i = 0; i < total; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.animationDuration = 10 + Math.random() * 10 + 's';
+      p.style.animationDelay = -Math.random() * 10 + 's';
+      p.style.opacity = Math.random();
+      p.style.width = p.style.height = 3 + Math.random() * 3 + 'px';
+      container.appendChild(p);
+    }
+  }
+</script>
 </body>
 </html>

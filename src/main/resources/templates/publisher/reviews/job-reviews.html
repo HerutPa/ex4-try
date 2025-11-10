@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <title>All Reviews for My Jobs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- סגנונות גלובליים (Reset, Base, utilities) -->
+    <th:block th:replace="fragments/style :: globalStyles"></th:block>
+
+    <!-- עיצוב מקומי לדף ביקורות בלבד -->
+    <style>
+        .container{ max-width:1100px; margin:0 auto; padding:30px 20px 90px; position:relative; z-index:1; }
+
+        /* Header זכוכית */
+        .header{
+            padding:18px 22px;
+            display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;
+            background:rgba(255,255,255,.06);
+            border:1px solid rgba(255,255,255,.12);
+            border-radius:16px; backdrop-filter:blur(10px);
+            box-shadow:0 10px 30px rgba(0,0,0,.35);
+            margin:22px 0 26px;
+        }
+        .title{
+            font-size:1.8rem; font-weight:900; line-height:1.2;
+            background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+            -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+        }
+        .back-link{
+            display:inline-flex; align-items:center; gap:10px;
+            padding:10px 16px; border-radius:10px; font-weight:800; text-decoration:none;
+            background:rgba(255,255,255,.08); color:#fff;
+            border:1px solid rgba(255,255,255,.18);
+            transition:.25s; box-shadow:0 8px 24px rgba(0,0,0,.25);
+        }
+        .back-link:hover{ transform:translateY(-3px); box-shadow:0 14px 32px rgba(0,0,0,.35); }
+
+        /* Empty state */
+        .empty{
+            background:rgba(255,255,255,.08);
+            border:1px solid rgba(255,255,255,.18);
+            border-radius:16px; padding:30px; text-align:center; backdrop-filter:blur(8px);
+            color:rgba(255,255,255,.85);
+        }
+
+        /* Review card */
+        .card{
+            background:rgba(255,255,255,.06);
+            color:#fff;
+            border-radius:18px;
+            padding:20px 22px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,.12);
+            box-shadow:0 8px 28px rgba(0,0,0,.35);
+            transition:.25s; position:relative; overflow:hidden;
+            display:flex; flex-direction:column; gap:12px;
+            margin:14px 0;
+        }
+        .card::before{
+            content:''; position:absolute; top:0; left:0; width:4px; height:100%;
+            background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+        }
+        .card-top{
+            display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;
+            border-bottom:1px solid rgba(255,255,255,.12); padding-bottom:10px;
+        }
+        .job-title{ font-weight:900; font-size:1.05rem; letter-spacing:.2px; color:#fff; }
+        .company{ color:rgba(255,255,255,.85); font-weight:600; margin-top:4px; font-size:.95rem; }
+        .date{ color:rgba(255,255,255,.75); font-size:.9rem; white-space:nowrap; }
+
+        .meta{ display:flex; flex-wrap:wrap; gap:10px; }
+        .chip{
+            display:inline-flex; align-items:center; gap:8px;
+            padding:6px 10px; border-radius:999px; font-size:.9rem; font-weight:700;
+            background: rgba(255,255,255,.10);
+            border:1px solid rgba(255,255,255,.15);
+            color: rgba(255,255,255,.9);
+        }
+        .comment{ color:rgba(255,255,255,.9); line-height:1.6; }
+        .card-actions{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; margin-top:6px; }
+        .cta{
+            display:inline-flex; align-items:center; gap:10px;
+            padding:10px 16px; border-radius:10px; font-weight:800; text-decoration:none;
+            background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff;
+            transition:.2s; box-shadow:0 6px 18px rgba(102,126,234,.35);
+        }
+        .cta:hover{ transform:translateX(4px); box-shadow:0 10px 24px rgba(102,126,234,.5); }
+
+        @media (max-width:700px){
+            .title{ font-size:1.5rem; }
+            .card{ padding:18px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- רקע נע + חלקיקים (פרגמנט) -->
+<div th:replace="fragments/background :: bg"></div>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <div class="title"><i class="fa-regular fa-star"></i> All reviews for my jobs</div>
+        <a th:href="@{/publisher/jobs}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to my jobs</a>
+    </div>
+
+    <!-- Empty -->
+    <div th:if="${#lists.isEmpty(reviews)}" class="empty">No reviews yet.</div>
+
+    <!-- Reviews list -->
+    <div th:each="r : ${reviews}" class="card">
+        <div class="card-top">
+            <div>
+                <div class="job-title" th:text="${r.job.title}">Job title</div>
+                <div class="company">Company: <span th:text="${r.job.company}">Company</span></div>
+            </div>
+            <div class="date" th:text="${#temporals.format(r.createdAt, 'yyyy-MM-dd HH:mm')}">Date</div>
+        </div>
+
+        <div class="meta">
+            <span class="chip"><i class="fa-regular fa-user"></i> <span th:text="${r.reviewerName}">Name</span></span>
+            <span class="chip"><i class="fa-regular fa-star"></i> <span th:text="${r.rating}">5</span>/5</span>
+        </div>
+
+        <p class="comment" th:text="${r.comment}">Review content…</p>
+
+        <div class="card-actions">
+            <a class="cta" th:href="@{'/publisher/jobs/' + ${r.job.id} + '/reviews'}">
+                All reviews for this job <i class="fa-solid fa-arrow-left"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Footer (פרגמנט) -->
+<div th:replace="fragments/footer :: footer"></div>
+</body>
+</html>

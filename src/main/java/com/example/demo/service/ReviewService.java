@@ -16,14 +16,12 @@ public class ReviewService {
     }
 
     public List<Review> getByJob(Job job) {
-        return repo.findByJob(job);
+        // היה: return repo.findByJob(job);
+        return repo.findByJobOrderByCreatedAtDesc(job); // ✅ משתמש במתודה שקיימת בריפו
     }
 
-    public void save(Review review) {
-        repo.save(review);
-    }
+    public void save(Review review) { repo.save(review); }
 
-    public void delete(Long id) {
-        repo.deleteById(id);
-    }
+    public void delete(Long id) { repo.deleteById(id); }
 }
+

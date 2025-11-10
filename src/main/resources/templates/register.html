@@ -1,104 +1,288 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        label { display:block; margin-top:8px; }
-        .error { color:#c00; margin:6px 0; }
-        .hint  { color:#666; font-size:.9em; }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
+            font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+            background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+            min-height:100vh;display:flex;align-items:center;justify-content:center;
+            padding:40px 20px;position:relative;overflow-x:hidden
+        }
+        .animated-bg{position:fixed;top:0;left:0;width:100%;height:100%;
+            background:linear-gradient(-45deg,#667eea,#764ba2,#f093fb,#4facfe);
+            background-size:400% 400%;animation:gradientShift 15s ease infinite;z-index:-1}
+        @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        .particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1}
+        .particle{position:absolute;width:3px;height:3px;background:rgba(255,255,255,.6);border-radius:50%;animation:float linear infinite}
+        @keyframes float{0%{transform:translateY(100vh) rotate(0deg);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-100vh) rotate(360deg);opacity:0}}
+        .register-container{background:#fff;border-radius:25px;box-shadow:0 20px 60px rgba(0,0,0,.3);
+            max-width:550px;width:100%;padding:45px 40px;position:relative;overflow:hidden;animation:slideIn .6s ease-out}
+        @keyframes slideIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+        .register-header{text-align:center;margin-bottom:35px;position:relative;z-index:1}
+        .logo-circle{width:80px;height:80px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:50%;
+            display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:35px;animation:pulse 2s ease-in-out infinite;box-shadow:0 8px 25px rgba(102,126,234,.4)}
+        @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+        h1{color:#333;font-size:2em;margin-bottom:10px}
+        .subtitle{color:#999;font-size:1em}
+        .alert{padding:15px 20px;border-radius:12px;margin-bottom:20px;font-weight:600;display:flex;align-items:center;gap:12px;animation:slideInAlert .5s ease-out}
+        @keyframes slideInAlert{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+        .alert-error{background:#fee;color:#c33;border:2px solid #fcc}
+        .alert-success{background:#efe;color:#3c3;border:2px solid #cfc}
+        .register-form{position:relative;z-index:1}
+        .form-group{margin-bottom:20px}
+        .form-group label{display:block;color:#555;font-weight:600;margin-bottom:8px;font-size:.95em}
+        .input-wrapper{position:relative}
+        .input-icon{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:#999;font-size:1.1em;pointer-events:none;transition:color .3s ease}
+        .form-control{width:100%;padding:14px 15px 14px 45px;border:2px solid #e0e0e0;border-radius:12px;font-size:1em;transition:all .3s ease;background:#f8f9fa}
+        .form-control:focus{outline:none;border-color:#667eea;background:#fff;box-shadow:0 0 0 4px rgba(102,126,234,.1)}
+        .form-control:focus + .input-icon{color:#667eea}
+        select.form-control{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a 1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+            background-repeat:no-repeat;background-position:right 15px center;padding-right:45px}
+        .password-toggle{position:absolute;right:15px;top:50%;transform:translateY(-50%);background:none;border:none;color:#999;cursor:pointer;font-size:1.1em;padding:5px;transition:color .3s ease}
+        .password-toggle:hover{color:#667eea}
+        #skillsBox{background:#f8f9fa;border-radius:12px;padding:20px;margin-top:15px;border:2px solid #e0e0e0}
+        #skillsBox h3{color:#667eea;font-size:1.1em;margin-bottom:15px;display:flex;align-items:center;gap:10px}
+        .skills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:15px}
+        .skill-checkbox{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff;border:2px solid #e0e0e0;border-radius:8px;cursor:pointer;transition:all .3s ease}
+        .skill-checkbox:hover{border-color:#667eea;background:#f0f4ff}
+        .skill-checkbox input[type="checkbox"]{cursor:pointer;width:18px;height:18px;accent-color:#667eea}
+        .skill-checkbox label{cursor:pointer;margin:0;font-size:.9em;color:#555;font-weight:500}
+        .hint{color:#999;font-size:.85em;margin-top:8px;display:flex;align-items:center;gap:6px}
+        .error-msg{color:#e74c3c;font-size:.85em;margin-top:6px;display:flex;align-items:center;gap:6px}
+        .btn-register{width:100%;padding:16px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;border-radius:12px;font-size:1.1em;font-weight:700;cursor:pointer;transition:all .3s ease;box-shadow:0 6px 20px rgba(102,126,234,.4);margin-top:10px;position:relative;overflow:hidden}
+        .btn-register::before{content:'';position:absolute;top:50%;left:50%;width:0;height:0;border-radius:50%;background:rgba(255,255,255,.3);transform:translate(-50%,-50%);transition:width .6s,height .6s}
+        .btn-register:hover::before{width:400px;height:400px}
+        .btn-register:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(102,126,234,.6)}
+        .btn-register span{position:relative;z-index:1}
+        .form-footer{margin-top:25px;text-align:center}
+        .divider{display:flex;align-items:center;margin:20px 0;color:#999}
+        .divider::before,.divider::after{content:'';flex:1;height:1px;background:#e0e0e0}
+        .divider span{padding:0 15px;font-size:.9em}
+        .form-footer p{color:#666;margin-bottom:10px}
+        .link{color:#667eea;text-decoration:none;font-weight:600;transition:all .3s ease;display:inline-flex;align-items:center;gap:8px}
+        .link:hover{color:#764ba2;transform:translateX(-3px)}
+        .back-home{position:absolute;top:20px;right:20px;padding:10px 20px;background:rgba(255,255,255,.2);backdrop-filter:blur(10px);color:#fff;text-decoration:none;border-radius:25px;font-weight:600;transition:all .3s ease;display:flex;align-items:center;gap:8px;border:2px solid rgba(255,255,255,.3)}
+        .back-home:hover{background:rgba(255,255,255,.3);transform:translateX(-5px)}
+        @media (max-width:768px){
+            .register-container{padding:35px 25px}
+            h1{font-size:1.8em}
+            .skills-grid{grid-template-columns:1fr}
+            .back-home{top:10px;right:10px;font-size:.9em}
+        }
     </style>
 </head>
 <body>
-<h1>Create account</h1>
+<div class="animated-bg"></div>
+<div class="particles" id="particles"></div>
 
-<!-- הודעת שגיאה כללית (אם יש) -->
-<div th:if="${error}" th:text="${error}" class="error"></div>
+<a th:href="@{/}" class="back-home">
+    <i class="fas fa-home"></i><span>Home Page</span>
+</a>
 
-<form th:action="@{/register}" th:object="${form}" method="post">
-    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-
-    <label>Email:
-        <input type="email" th:field="*{email}" required />
-    </label>
-    <div class="error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
-
-    <label>Full name:
-        <input type="text" th:field="*{fullName}" required />
-    </label>
-    <div class="error" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
-
-    <label>Role:
-        <select th:field="*{role}" id="roleSelect" required>
-            <!-- אין אופציה ריקה כי יש ברירת מחדל Role.USER -->
-            <option th:each="r : ${T(com.example.demo.model.Role).values()}"
-                    th:value="${r}" th:text="${r}">ROLE</option>
-        </select>
-    </label>
-
-    <!-- Skills: מוצג רק כשנבחר USER; בנוסף, JS ידאג דינמית בזמן שינוי -->
-    <div id="skillsBox"
-         th:style="${form.role} == 'USER' ? 'display:block' : 'display:none'">
-        <label>Skills (choose):</label>
-        <div>
-            <div th:each="skill : ${allSkills}" style="display:inline-block; margin:3px 10px 3px 0;">
-                <label style="display:inline-flex; align-items:center; gap:4px;">
-                    <input type="checkbox" th:value="${skill.name}" th:field="*{skills}"/>
-                    <span th:text="${skill.name}"></span>
-                </label>
-            </div>
-        </div>
-
-        <label>Or add free text (comma/semicolon):
-            <input type="text" th:field="*{freeTextSkills}" placeholder="e.g. Java; React; SQL" />
-        </label>
-        <div class="hint">Example: Java; React; SQL</div>
-        <div class="error" th:if="${#fields.hasErrors('skills')}" th:errors="*{skills}"></div>
-        <div class="error" th:if="${#fields.hasErrors('freeTextSkills')}" th:errors="*{freeTextSkills}"></div>
+<div class="register-container">
+    <div class="register-header">
+        <div class="logo-circle">📝</div>
+        <h1>Register</h1>
+        <p class="subtitle">Join us and start searching for your perfect job!</p>
     </div>
 
-    <label>Password:
-        <input type="password" th:field="*{password}" required />
-    </label>
-    <div class="error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+    <div th:if="${error}" class="alert alert-error">
+        <i class="fas fa-exclamation-circle"></i>
+        <span th:text="${error}">Error</span>
+    </div>
 
-    <label>Confirm password:
-        <input type="password" th:field="*{confirmPassword}" required />
-    </label>
-    <div class="error" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></div>
+    <div th:if="${form != null}">
+        <form th:action="@{/register}" th:object="${form}" method="post" class="register-form" novalidate>
+            <!-- CSRF בטוח -->
+            <input type="hidden" th:if="${_csrf}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
-    <button type="submit" style="margin-top:12px;">Register</button>
-</form>
+            <!-- Email -->
+            <div class="form-group">
+                <label for="email"><i class="fas fa-envelope"></i> * Email</label>
+                <div class="input-wrapper">
+                    <input type="email" id="email" th:field="*{email}" class="form-control" placeholder="example@email.com" required autofocus>
+                    <i class="fas fa-at input-icon"></i>
+                </div>
+                <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="error-msg">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
 
-<p style="margin-top:10px;">
-    Already have an account? <a th:href="@{/login}">Login</a>
-</p>
+            <!-- Full Name -->
+            <div class="form-group">
+                <label for="fullName"><i class="fas fa-user"></i> * Full Name</label>
+                <div class="input-wrapper">
+                    <input type="text" id="fullName" th:field="*{fullName}" class="form-control" placeholder="Enter your full name" required>
+                    <i class="fas fa-id-card input-icon"></i>
+                </div>
+                <div th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" class="error-msg">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
 
-<!-- סקריפט: מציג/מסתיר וגם מנקה/מנטרל את שדות ה-Skills כשהם מוסתרים -->
+            <!-- Role -->
+            <div class="form-group">
+                <label for="roleSelect"><i class="fas fa-user-tag"></i> * Role</label>
+                <div class="input-wrapper">
+                    <select id="roleSelect" th:field="*{role}" class="form-control" required>
+                        <option value="" disabled selected hidden>-- Select Role --</option>
+                        <option th:value="${T(com.example.demo.model.Role).USER.name()}">User - Job Seeker</option>
+                        <option th:value="${T(com.example.demo.model.Role).PUBLISHER.name()}">Publisher - Recruiter</option>
+                    </select>
+                    <i class="fas fa-briefcase input-icon"></i>
+                </div>
+            </div>
+
+            <!-- Skills Box (USER only) -->
+            <div id="skillsBox" style="display:none;">
+                <h3><i class="fas fa-star"></i> Your Skills</h3>
+
+                <!-- Existing Skills -->
+                <div class="skills-grid" th:if="${allSkills != null}">
+                    <div th:each="skill : ${allSkills}" class="skill-checkbox">
+                        <input type="checkbox" th:id="'skill_' + ${skill.id}" th:value="${skill.name}" th:field="*{skills}">
+                        <label th:for="'skill_' + ${skill.id}" th:text="${skill.name}">Skill</label>
+                    </div>
+                </div>
+
+                <div class="hint" th:if="${allSkills == null}">
+                    <i class="fas fa-info-circle"></i> Skills list unavailable.
+                </div>
+
+                <!-- Free Text Skills -->
+                <div class="form-group" style="margin-top:15px;">
+                    <label for="freeTextSkills"><i class="fas fa-pencil-alt"></i> Or add additional skills</label>
+                    <input type="text" id="freeTextSkills" th:field="*{freeTextSkills}" class="form-control" placeholder="e.g.: Java, React, SQL (separated by commas)">
+                    <div class="hint"><i class="fas fa-lightbulb"></i> Write additional skills separated by commas or semicolons</div>
+                </div>
+
+                <div th:if="${#fields.hasErrors('skills')}" th:errors="*{skills}" class="error-msg"><i class="fas fa-exclamation-triangle"></i></div>
+                <div th:if="${#fields.hasErrors('freeTextSkills')}" th:errors="*{freeTextSkills}" class="error-msg"><i class="fas fa-exclamation-triangle"></i></div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label for="password"><i class="fas fa-lock"></i> * Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" th:field="*{password}" class="form-control" placeholder="At least 6 characters" required minlength="6">
+                    <i class="fas fa-key input-icon"></i>
+                    <button type="button" class="password-toggle" onclick="togglePassword('password','toggleIcon1')"><i class="fas fa-eye" id="toggleIcon1"></i></button>
+                </div>
+                <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="error-msg"><i class="fas fa-exclamation-triangle"></i></div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="form-group">
+                <label for="confirmPassword"><i class="fas fa-lock"></i> * Confirm Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="confirmPassword" th:field="*{confirmPassword}" class="form-control" placeholder="Re-enter your password" required minlength="6">
+                    <i class="fas fa-check-double input-icon"></i>
+                    <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword','toggleIcon2')"><i class="fas fa-eye" id="toggleIcon2"></i></button>
+                </div>
+                <small id="passwordError" class="error-msg" style="display:none;"><i class="fas fa-exclamation-triangle"></i> Passwords do not match</small>
+                <div th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="error-msg"><i class="fas fa-exclamation-triangle"></i></div>
+            </div>
+
+            <button type="submit" class="btn-register"><span><i class="fas fa-user-plus"></i> Register Now</span></button>
+        </form>
+    </div>
+
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      const roleSelect = document.getElementById("roleSelect");
-      const skillsBox  = document.getElementById("skillsBox");
+    // PASSWORD TOGGLE
+    function togglePassword(inputId, iconId){
+        const input=document.getElementById(inputId);
+        const icon=document.getElementById(iconId);
+        const isPwd=input.type==='password';
+        input.type=isPwd?'text':'password';
+        icon.classList.toggle('fa-eye',!isPwd);
+        icon.classList.toggle('fa-eye-slash',isPwd);
+    }
 
-      // קבוצה של כל צ׳קבוקסים + טקסט חופשי בתוך skillsBox
-      const getSkillCheckboxes = () => skillsBox.querySelectorAll('input[type="checkbox"]');
-      const getFreeTextInput   = () => skillsBox.querySelector('input[type="text"]');
+    // PARTICLES
+    (function createParticles(){
+        const c=document.getElementById('particles'); if(!c) return;
+        const n=30;
+        for(let i=0;i<n;i++){
+            const p=document.createElement('div');
+            p.className='particle';
+            p.style.left=(Math.random()*100)+'%';
+            p.style.animationDuration=(Math.random()*10+10)+'s';
+            p.style.animationDelay=(Math.random()*5)+'s';
+            c.appendChild(p);
+        }
+    })();
 
-      function setSkillsEnabled(enabled) {
-        getSkillCheckboxes().forEach(cb => { cb.disabled = !enabled; if (!enabled) cb.checked = false; });
-        const ft = getFreeTextInput();
-        if (ft) { ft.disabled = !enabled; if (!enabled) ft.value = ""; }
-      }
+    // ROLE → SHOW/HIDE SKILLS  (עובד לשתי הגרסאות: roleSelect או roleSelect_f)
+    document.addEventListener('DOMContentLoaded',function(){
+        const role = document.getElementById('roleSelect') || document.getElementById('roleSelect_f');
+        const skillsBox = document.getElementById('skillsBox');
+        if(!role || !skillsBox) return;
 
-      function toggleSkills() {
-        const isUser = roleSelect.value === "USER";
-        skillsBox.style.display = isUser ? "block" : "none";
-        setSkillsEnabled(isUser);
-      }
-
-      roleSelect.addEventListener("change", toggleSkills);
-      toggleSkills(); // הפעלה ראשונית
+        function toggleSkills(){
+            const isUser = role.value === 'USER';
+            skillsBox.style.display = isUser ? 'block' : 'none';
+            const cbs = skillsBox.querySelectorAll('input[type="checkbox"]');
+            const text = skillsBox.querySelector('input[type="text"]');
+            cbs.forEach(cb=>{ cb.disabled=!isUser; if(!isUser) cb.checked=false; });
+            if(text){ text.disabled=!isUser; if(!isUser) text.value=''; }
+        }
+        role.addEventListener('change',toggleSkills);
+        toggleSkills();
     });
+
+    // ===== PASSWORD MATCH VALIDATION (מופעל רק בהגשה) =====
+    (function () {
+        const form = document.querySelector('.register-form');
+        if (!form) return;
+
+        const p1  = document.getElementById('password') || document.getElementById('password_f');
+        const p2  = document.getElementById('confirmPassword') || document.getElementById('confirmPassword_f');
+        const err = document.getElementById('passwordError');
+        if (!p1 || !p2 || !err) return;
+
+        let submittedOnce = false;
+
+        function samePasswords() {
+            return p1.value.trim() !== '' &&
+                p2.value.trim() !== '' &&
+                p1.value.trim() === p2.value.trim();
+        }
+
+        function showOrHideError() {
+            // מציגים שגיאה רק אחרי ניסיון הגשה
+            if (!submittedOnce) {
+                err.style.display = 'none';
+                return;
+            }
+            // אחרי נסיון הגשה: מציגים אם אין התאמה
+            err.style.display = samePasswords() ? 'none' : 'inline';
+        }
+
+        form.addEventListener('submit', function (e) {
+            submittedOnce = true;
+            if (!samePasswords()) {
+                e.preventDefault();
+                showOrHideError();
+                // העברת פוקוס לשדה האישור לנוחות המשתמש
+                p2.focus();
+            }
+        });
+
+        // אחרי שניסו להגיש פעם אחת, נעדכן את ההודעה גם תוך כדי הקלדה
+        ['input', 'blur'].forEach(ev => {
+            p1.addEventListener(ev, showOrHideError);
+            p2.addEventListener(ev, showOrHideError);
+        });
+
+        // התחלה: לא להציג הודעה
+        err.style.display = 'none';
+    })();
 </script>
+</div>
 </body>
 </html>

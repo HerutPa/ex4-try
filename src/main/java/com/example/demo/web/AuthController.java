@@ -15,10 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @Controller
 public class AuthController {
 
-
-
     private final UserService userService;
-
     private final SkillRepository skillRepo;
     private final UserRepository userRepo;
 
@@ -30,57 +27,54 @@ public class AuthController {
         this.userRepo = userRepo;
     }
 
-
-    // AuthController (או RegisterController)
-    @GetMapping("/register")
-    public String showRegister(Model model) {
-        if (!model.containsAttribute("form")) model.addAttribute("form", new RegisterForm());
-        model.addAttribute("allSkills", skillRepo.findAll(Sort.by("name"))); // חשוב לטמפלט
-        return "register";
-    }
-
     @GetMapping("/login")
     public String login() { return "login"; }
 
+
+    // AuthController (או RegisterController)
+    // AuthController.java
+    @GetMapping("/register")
+    public String showRegister(Model model) {
+        if (!model.containsAttribute("form")) {
+            model.addAttribute("form", new RegisterForm());
+        }
+        model.addAttribute("allSkills", skillRepo.findAll(Sort.by("name")));
+        return "register";
+    }
+
     @PostMapping("/register")
     public String doRegister(@Valid @ModelAttribute("form") RegisterForm form,
-                             BindingResult binding,
-                             RedirectAttributes ra,
-                             Model model) {
-        // תוספת: נרמל קלטים (למניעת רווחים מיותרים)
-        if (form.getEmail() != null)    form.setEmail(form.getEmail().trim());
-        if (form.getFullName() != null) form.setFullName(form.getFullName().trim());
+                             BindingResult binding, RedirectAttributes ra) {
 
-        // בדיקת התאמת סיסמאות
+        if (form.getEmail()!=null) form.setEmail(form.getEmail().trim().toLowerCase());
+        if (form.getFullName()!=null) form.setFullName(form.getFullName().trim());
+
         if (!form.getPassword().equals(form.getConfirmPassword())) {
-            binding.rejectValue("confirmPassword", "mismatch", "Passwords do not match");
+            binding.rejectValue("confirmPassword","mismatch","Passwords do not match");
         }
+        if (userRepo.existsByEmailIgnoreCase(form.getEmail())) {
+            binding.rejectValue("email","duplicate","Email already registered");
+        }
+        // ❌ להסיר:
+        // if (userRepo.existsByFullNameIgnoreCase(form.getFullName())) { ... }
+
         if (binding.hasErrors()) {
-            model.addAttribute("form", form);
-            model.addAttribute("allSkills", skillRepo.findAll(Sort.by("name")));
-            return "register";
+            ra.addFlashAttribute("org.springframework.validation.BindingResult.form", binding);
+            ra.addFlashAttribute("form", form);
+            return "redirect:/register";
         }
 
-        try {
-            userService.register(
-                    form.getEmail(),
-                    form.getPassword(),
-                    form.getFullName(),
-                    form.getRole(),
-                    form.getSkills(),         // ← שמות ה-skills מהצ׳קבוקסים
-                    form.getFreeTextSkills()  // ← טקסט חופשי (פסיקים/נקודה-פסיק)
-            );
-        } catch (IllegalArgumentException ex) {
-            binding.rejectValue("email", "exists", ex.getMessage());
-            model.addAttribute("error", ex.getMessage());
-            model.addAttribute("form", form);
-            model.addAttribute("allSkills", skillRepo.findAll(Sort.by("name")));
-            return "register";
+        if (form.getRole() == null) {
+            binding.rejectValue("role","required","Role is required");
         }
 
+        userService.register(
+                form.getEmail(), form.getPassword(), form.getFullName(),
+                form.getRole(), form.getSkills(), form.getFreeTextSkills()
+        );
 
-        // Flash + סמן ב-URL כדי להראות הודעת הצלחה בדף הלוגין
-        ra.addFlashAttribute("msg", "Registration successful. You can log in now.");
+        ra.addFlashAttribute("msg","Registration successful. You can log in now.");
         return "redirect:/login?registered";
     }
+
 }

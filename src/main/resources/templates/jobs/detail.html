@@ -1,204 +1,231 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="https://www.thymeleaf.org/extras/spring-security"
-      lang="en">
+      lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <title th:text="${job.title}">Job</title>
-    <style>
-        body{font-family:Arial, sans-serif; margin:24px; max-width:900px}
-        .meta{display:grid; grid-template-columns:160px 1fr; gap:8px 16px; margin:16px 0}
-        .btn{display:inline-block; padding:8px 12px; border:1px solid #333; text-decoration:none; cursor:pointer; background:white}
-        .btn:hover{background:#f0f0f0}
-        pre { white-space: pre-wrap; font-family: inherit; }
-        .muted{color:#777}
-        .review{border-bottom:1px solid #eee; padding:10px 0}
-        .stars{font-size:18px; letter-spacing:2px}
-
-        /* 🆕 Favorite button styles */
-        .favorite-btn {
-            background: none;
-            border: 2px solid #ffd700;
-            padding: 10px 20px;
-            font-size: 24px;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            margin-left: 10px;
-        }
-        .favorite-btn:hover {
-            transform: scale(1.1);
-        }
-        .favorite-btn.active {
-            background: #ffd700;
-        }
-        .action-buttons {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 16px;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${job.title}">Job Details</title>
+    <!-- CSS גלובלי (רקע נע, זכוכית, כפתורים, כרטיסים וכו') -->
+    <th:block th:replace="fragments/style :: globalStyles"></th:block>
 </head>
 <body>
-<p><a href="/jobs">← Back to Jobs</a></p>
 
-<h1 th:text="${job.title}">Title</h1>
+<!-- רקע נע + חלקיקים -->
+<div th:replace="fragments/background :: bg"></div>
 
-<div class="meta">
-    <div><b>Company:</b></div>
-    <div th:text="${job.company != null and !#strings.isEmpty(job.company) ? job.company : '-'}">-</div>
+<div class="page-container">
+    <!-- Header אחיד -->
+    <header class="glass-header">
+        <div class="title"><i class="fa-solid fa-briefcase"></i> Job Details</div>
+        <a th:href="@{/jobs}" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Job List</a>
+    </header>
 
-    <div><b>Category:</b></div>
-    <div th:text="${job.category != null ? job.category.name : '-'}">-</div>
+    <!-- כרטיס פרטי המשרה -->
+    <section class="glass-card" style="margin-top:10px">
+        <!-- כותרת + חברה + קטגוריה + מועדפים -->
+        <div class="card-top" style="border-bottom:1px solid rgba(255,255,255,.12); padding-bottom:14px; margin-bottom:14px;">
+            <div class="card-left">
+                <div class="brand-dot" aria-hidden="true"></div>
+                <div class="title-wrap">
+                    <h1 class="card-title" th:text="${job.title}">Job Title</h1>
+                    <div class="company-line">
+                        <i class="fa-solid fa-building"></i>
+                        <span th:text="${job.company}">Company Name</span>
+                    </div>
+                </div>
+            </div>
 
-    <div><b>Location:</b></div>
-    <div th:text="${job.location != null and !#strings.isEmpty(job.location) ? job.location : '-'}">-</div>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span th:if="${job.category != null}" class="badge" th:text="${job.category.name}">Category</span>
 
-    <!-- ✅ Skills -->
-    <div><b>Skills:</b></div>
-    <div>
-        <div th:if="${job.skills != null and !job.skills.isEmpty()}">
-            <span th:each="s : ${job.skills}"
-                  class="skill-badge"
-                  th:text="${s.name}">Skill</span>
+                <!-- כפתור מועדפים (עיצוב מינימלי מקומי) -->
+                <button sec:authorize="hasRole('USER')"
+                        id="favoriteBtn"
+                        th:data-job-id="${job.id}"
+                        title="Add to Favorites"
+                        style="background:transparent; color:#ffd700; border:2px solid #ffd700; padding:8px 12px; font-size:18px; border-radius:10px; min-width:48px; cursor:pointer;">
+                    ☆
+                </button>
+            </div>
         </div>
-        <div class="muted" th:unless="${job.skills != null and !job.skills.isEmpty()}">-</div>
-    </div>
 
-    <div><b>Created at:</b></div>
-    <div th:text="${#temporals.format(job.createdAt, 'yyyy-MM-dd HH:mm')}">date</div>
+        <!-- מטא: מיקום / שכר / תאריך / סטטוס -->
+        <div class="meta-row" style="margin-bottom:10px">
+      <span th:if="${job.location}" class="meta-chip">
+        <i class="fa-solid fa-location-dot"></i>
+        <span th:text="${job.location}">Location</span>
+      </span>
 
-    <div><b>Status:</b></div>
-    <div th:text="${job.active} ? 'Active' : 'Inactive'">Active</div>
+            <span th:if="${job.salaryMin != null || job.salaryMax != null}" class="meta-chip">
+        <i class="fa-solid fa-shekel-sign"></i>
+        <span>
+          <span th:if="${job.salaryMin != null}" th:text="${#numbers.formatInteger(job.salaryMin,0,'COMMA')}">Min</span>
+          <span th:if="${job.salaryMin != null && job.salaryMax != null}"> – </span>
+          <span th:if="${job.salaryMax != null}" th:text="${#numbers.formatInteger(job.salaryMax,0,'COMMA')}">Max</span>
+          ₪
+        </span>
+      </span>
+
+            <span class="meta-chip">
+        <i class="fa-regular fa-calendar"></i>
+        <span th:text="${#temporals.format(job.createdAt, 'dd/MM/yyyy HH:mm')}">Date</span>
+      </span>
+
+            <span class="meta-chip">
+        <i class="fa-regular fa-circle-check"></i>
+        <span th:text="${job.active ? 'Active' : 'Inactive'}">Status</span>
+      </span>
+        </div>
+
+        <!-- תיאור -->
+        <div style="margin-top:12px">
+            <h3 class="title" style="font-size:1.4rem; -webkit-text-fill-color:initial; color:#fff; background:none;">Job Description</h3>
+            <p class="card-desc" style="-webkit-line-clamp:unset; margin-top:6px;">
+        <span class="description-text" th:text="${job.description}">
+          Job description will appear here...
+        </span>
+            </p>
+        </div>
+
+        <!-- כפתור הגשה -->
+        <div style="margin-top:16px">
+            <a class="view-btn"
+               th:href="${job.externalUrl}"
+               target="_blank"
+               rel="noopener noreferrer">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                Apply on Company Website
+            </a>
+        </div>
+    </section>
+
+    <!-- חוות דעת -->
+    <section class="glass-card" style="margin-top:20px">
+        <h2 class="title" style="font-size:1.4rem; -webkit-text-fill-color:initial; color:#fff; background:none;">
+            <i class="fa-regular fa-star"></i> Job Reviews
+        </h2>
+
+        <!-- סיכום -->
+        <div th:if="${reviewsCount != null and reviewsCount > 0}"
+             class="glass-card"
+             style="background:linear-gradient(135deg,#ffd700 0%,#ffed4e 100%); color:#24243e; margin-top:12px;">
+            <div style="font-size:2.2rem; font-weight:900;" th:text="${#numbers.formatDecimal(avgRating, 1, 1)}">0.0</div>
+            <div style="font-size:26px; letter-spacing:4px; color:#b58900;" th:with="full=${T(java.lang.Math).round(avgRating)}">
+                <span th:each="i : ${#numbers.sequence(1,5)}" th:text="${i <= full} ? '★' : '☆'">★</span>
+            </div>
+            <div style="margin-top:6px; font-weight:700;">
+                Based on <span th:text="${reviewsCount}">0</span> reviews
+            </div>
+        </div>
+
+        <!-- טופס הוספת חוות דעת -->
+        <div class="glass-card" style="margin-top:16px">
+            <h3 style="margin-bottom:10px; font-weight:900;">Leave a Review</h3>
+            <form th:action="@{|/jobs/${job.id}/reviews|}" method="post" th:object="${reviewForm}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                <div style="display:grid; gap:12px;">
+                    <div>
+                        <label style="font-weight:700;">Rating (1–5)</label>
+                        <select th:field="*{rating}" required
+                                style="width:100%; padding:10px; border-radius:10px; background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.25)">
+                            <option value="">-- Select Rating --</option>
+                            <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                            <option value="4">⭐⭐⭐⭐ Very Good</option>
+                            <option value="3">⭐⭐⭐ Good</option>
+                            <option value="2">⭐⭐ Okay</option>
+                            <option value="1">⭐ Not Good</option>
+                        </select>
+                        <div th:if="${#fields.hasErrors('rating')}" th:errors="*{rating}" style="color:#ff7676; font-size:.9em; margin-top:6px;"></div>
+                    </div>
+
+                    <div>
+                        <label style="font-weight:700;">Full name</label>
+                        <input th:field="*{reviewerName}" placeholder="Enter your name" required
+                               style="width:100%; padding:10px; border-radius:10px; background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.25)">
+                        <div th:if="${#fields.hasErrors('reviewerName')}" th:errors="*{reviewerName}" style="color:#ff7676; font-size:.9em; margin-top:6px;"></div>
+                    </div>
+
+                    <div>
+                        <label style="font-weight:700;">Comment (Optional)</label>
+                        <textarea rows="5" th:field="*{comment}" placeholder="Share your experience..."
+                                  style="width:100%; padding:10px; border-radius:10px; background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.25)"></textarea>
+                        <div th:if="${#fields.hasErrors('comment')}" th:errors="*{comment}" style="color:#ff7676; font-size:.9em; margin-top:6px;"></div>
+                    </div>
+                </div>
+
+                <button type="submit" class="view-btn" style="margin-top:12px;">
+                    <i class="fa-solid fa-paper-plane"></i> Submit Review
+                </button>
+            </form>
+        </div>
+
+        <!-- רשימת חוות דעת -->
+        <div th:if="${reviewsCount == null or reviewsCount == 0}" class="glass-card" style="margin-top:16px; text-align:center;">
+            <div style="font-weight:800; color:rgba(255,255,255,.9)">No reviews yet</div>
+            <div style="color:rgba(255,255,255,.8)">Be the first to write a review for this job!</div>
+        </div>
+
+        <div th:if="${reviews != null and !reviews.isEmpty()}" style="margin-top:16px;">
+            <h3 style="margin-bottom:10px; font-weight:900;">All Reviews</h3>
+            <div th:each="review : ${reviews}" class="glass-card" style="margin:10px 0; padding:16px;">
+                <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+                    <span style="font-weight:800;" th:text="${review.reviewerName}">Reviewer</span>
+                    <span style="color:rgba(255,255,255,.7); font-size:.9em;" th:text="${#temporals.format(review.createdAt, 'dd/MM/yyyy HH:mm')}">Date</span>
+                </div>
+                <div style="color:#ffb300; font-size:20px; margin:6px 0;">
+          <span th:each="i : ${#numbers.sequence(1,5)}"
+                th:text="${i <= review.rating} ? '★' : '☆'">★</span>
+                </div>
+                <div th:if="${review.comment}" style="color:rgba(255,255,255,.9); line-height:1.6;" th:text="${review.comment}">
+                    Review comment...
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
 
-<h3>Description</h3>
-<pre th:text="${job.description}">Description…</pre>
-
-<div class="action-buttons">
-    <a class="btn" th:href="${job.externalUrl}" target="_blank" rel="noopener noreferrer">
-        Apply on company site
-    </a>
-
-    <!-- 🆕 Favorite button - רק למשתמשים מחוברים עם תפקיד USER -->
-    <button sec:authorize="hasRole('USER')"
-            class="favorite-btn"
-            id="favoriteBtn"
-            th:data-job-id="${job.id}"
-            onclick="toggleFavorite()">
-        ☆
-    </button>
-</div>
-
-<hr>
-
-<!-- ===== Reviews Section ===== -->
-<section>
-    <h2>Reviews</h2>
-
-    <!-- Summary -->
-    <div th:if="${reviewsCount != null and reviewsCount > 0}">
-        <div style="margin-bottom:6px">
-            Average rating:
-            <strong th:text="${#numbers.formatDecimal(avgRating,1,1)}">0.0</strong>
-            <span class="muted" th:text="'(' + ${reviewsCount} + ' reviews)'">(0 reviews)</span>
-        </div>
-        <!-- Visual stars (rounded) -->
-        <div class="stars" th:with="full=${T(java.lang.Math).round(avgRating)}">
-            <span th:each="i : ${#numbers.sequence(1,5)}"
-                  th:text="${i <= full} ? '★' : '☆'">★</span>
-        </div>
-    </div>
-
-    <hr>
-    <h3>Leave a review</h3>
-    <div th:if="${msg}" style="color:green" th:text="${msg}"></div>
-
-    <form th:action="@{|/jobs/${job.id}/reviews|}" method="post" th:object="${reviewForm}">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-
-        <label>Rating</label>
-        <select th:field="*{rating}">
-            <option value="">--</option>
-            <option th:each="i : ${#numbers.sequence(1,5)}" th:value="${i}" th:text="${i}">1</option>
-        </select>
-        <div th:if="${#fields.hasErrors('rating')}" th:errors="*{rating}" style="color:red"></div>
-
-        <label>Name</label>
-        <input th:field="*{reviewerName}">
-        <div th:if="${#fields.hasErrors('reviewerName')}" th:errors="*{reviewerName}" style="color:red"></div>
-
-        <label>Comment</label>
-        <textarea rows="4" th:field="*{comment}"></textarea>
-        <div th:if="${#fields.hasErrors('comment')}" th:errors="*{comment}" style="color:red"></div>
-
-        <button type="submit" class="btn">Submit</button>
-    </form>
-
-
-    <!-- No reviews -->
-    <div th:if="${reviewsCount == null or reviewsCount == 0}" class="muted">
-        No reviews yet.
-    </div>
-
-    <!-- List -->
-    <div th:each="r : ${reviews}" class="review">
-        <div>
-            <span class="stars" th:each="i : ${#numbers.sequence(1,5)}"
-                  th:text="${i <= r.rating} ? '★' : '☆'">★</span>
-            <strong th:text="${r.reviewerName}">Reviewer</strong>
-            <span class="muted" th:text="${#temporals.format(r.createdAt, 'yyyy-MM-dd HH:mm')}">date</span>
-        </div>
-        <div th:if="${r.comment}" th:text="${r.comment}">comment</div>
-    </div>
-</section>
-
-<!-- 🆕 JavaScript לניהול מועדפים -->
-<script th:inline="javascript">
+<!-- סקריפט מועדפים (נשאר) -->
+<script th:inline="javascript" sec:authorize="hasRole('USER')">
     const jobId = /*[[${job.id}]]*/ null;
     const favoriteBtn = document.getElementById('favoriteBtn');
     const csrfToken = /*[[${_csrf.token}]]*/ '';
     const csrfHeader = /*[[${_csrf.headerName}]]*/ '';
 
-    // טעינת סטטוס התחלתי
-    if (favoriteBtn) {
-        checkFavoriteStatus();
-    }
+    if (favoriteBtn) { checkFavoriteStatus(); }
 
     function checkFavoriteStatus() {
         fetch(`/jobs/${jobId}/favorite-status`)
             .then(res => res.json())
-            .then(data => {
-                updateButton(data.favorite);
-            })
+            .then(data => updateButton(data.favorite))
             .catch(err => console.error('Error checking favorite status:', err));
     }
 
     function toggleFavorite() {
         fetch(`/jobs/${jobId}/favorite`, {
             method: 'POST',
-            headers: {
-                [csrfHeader]: csrfToken
-            }
+            headers: { [csrfHeader]: csrfToken }
         })
             .then(res => res.json())
-            .then(data => {
-                updateButton(data.favorite);
-            })
+            .then(data => updateButton(data.favorite))
             .catch(err => console.error('Error toggling favorite:', err));
     }
 
     function updateButton(isFavorite) {
+        if (!favoriteBtn) return;
         if (isFavorite) {
-            favoriteBtn.textContent = '★'; // כוכב מלא
-            favoriteBtn.classList.add('active');
+            favoriteBtn.textContent = '★';
+            favoriteBtn.style.background = 'rgba(255,215,0,.2)';
+            favoriteBtn.title = 'Remove from Favorites';
         } else {
-            favoriteBtn.textContent = '☆'; // כוכב ריק
-            favoriteBtn.classList.remove('active');
+            favoriteBtn.textContent = '☆';
+            favoriteBtn.style.background = 'transparent';
+            favoriteBtn.title = 'Add to Favorites';
         }
     }
+    favoriteBtn && (favoriteBtn.onclick = toggleFavorite);
 </script>
-
+<div th:replace="fragments/footer :: footer"></div>
 </body>
 </html>

@@ -1,202 +1,142 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="he" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>המשרות המועדפות שלי</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: #f5f5f5;
-        }
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="en" dir="ltr"
+      th:replace="fragments/layout :: content(~{::section}, 'My Favorite Jobs')">
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
+<section>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1 class="page-title">⭐ My Favorite Jobs</h1>
+            <a th:href="@{/user/home}" class="btn btn-primary">Homepage</a>
+        </div>
 
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-        }
+        <!-- Stats -->
+        <div th:if="${favoritesCount != null && favoritesCount > 0}"
+             class="alert alert-success">
+            You have <strong th:text="${favoritesCount}">0</strong> Favorite Jobs
+        </div>
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #ffd700;
-        }
+        <!-- Favorites Grid -->
+        <div th:if="${!page.content.isEmpty()}" class="jobs-grid">
+            <div th:each="job : ${page.content}" class="job-card">
+                <!-- TOP: logo + title/company + badge -->
+                <div class="card-top">
+                    <div class="card-left">
+                        <div class="brand-dot" aria-hidden="true"></div>
 
-        .count-badge {
-            background: #ffd700;
-            color: #333;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-        }
+                        <div class="title-wrap">
+                            <div class="card-title">
+                                <a th:href="@{|/jobs/${job.id}|}" th:text="${job.title}">Job Title</a>
+                            </div>
+                            <div class="company-line" th:text="${job.company} ?: 'Company'">Company</div>
+                        </div>
+                    </div>
 
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-        }
+                    <span th:if="${job.category != null}" class="badge"
+                          th:text="${job.category.name}">Category</span>
+                </div>
 
-        .back-link:hover {
-            text-decoration: underline;
-        }
+                <!-- META -->
+                <div class="meta-row">
+          <span th:if="${job.location}" class="meta-chip">
+            <i class="fa-solid fa-location-dot"></i>
+            <span th:text="${job.location}">Location</span>
+          </span>
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
+                    <span th:if="${job.salaryMin != null || job.salaryMax != null}" class="meta-chip">
+            <i class="fa-solid fa-shekel-sign"></i>
+            <span>
+              <span th:if="${job.salaryMin != null}"
+                    th:text="${#numbers.formatInteger(job.salaryMin,0,'COMMA')}">Min</span>
+              <span th:if="${job.salaryMin != null && job.salaryMax != null}"> – </span>
+              <span th:if="${job.salaryMax != null}"
+                    th:text="${#numbers.formatInteger(job.salaryMax,0,'COMMA')}">Max</span>
+              <span>₪</span>
+            </span>
+          </span>
 
-        th, td {
-            padding: 15px;
-            text-align: right;
-            border-bottom: 1px solid #eee;
-        }
+                    <span class="meta-chip">
+            <i class="fa-regular fa-calendar"></i>
+            <span th:text="${#temporals.format(job.createdAt, 'dd/MM/yyyy')}">Date</span>
+          </span>
+                </div>
 
-        th {
-            background: #f8f8f8;
-            font-weight: 600;
-            color: #555;
-        }
+                <!-- DESCRIPTION -->
+                <div class="card-desc" th:text="${job.description}">
+                    Job description...
+                </div>
 
-        tr:hover {
-            background: #f9f9f9;
-        }
+                <!-- ACTIONS -->
+                <div class="card-bottom">
+                    <span class="pill">Favorite</span>
 
-        .job-title {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1em;
-        }
+                    <div style="display:flex; gap:8px;">
+                        <a th:href="@{|/jobs/${job.id}|}" class="view-btn">
+                            <span>View Details</span>
+                            <i class="fa-solid fa-arrow-left"></i>
+                        </a>
 
-        .job-title:hover {
-            text-decoration: underline;
-        }
+                        <!-- כפתור הסרה מהמועדפים (נראה כמו כפתור משני) -->
+                        <button class="view-btn" style="background:#e74c3c; box-shadow:none;"
+                                th:data-job-id="${job.id}"
+                                onclick="removeFavorite(this)">
+                            <i class="fa-solid fa-trash"></i>
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
+        <!-- Empty State -->
+        <div th:if="${page.content.isEmpty()}" class="empty-state">
+            <h2>No favorite jobs yet</h2>
+            <p>Start following jobs that interest you!</p>
+            <a th:href="@{/jobs}" class="page-btn" style="display:inline-block;">
+                Browse Jobs
+            </a>
+        </div>
 
-        .empty-state-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-        }
+        <!-- Pagination -->
+        <div th:if="${page.totalPages > 1}" class="pagination">
+            <div class="pagination-info">
+                Page <strong th:text="${page.number + 1}">1</strong>
+                of <strong th:text="${page.totalPages}">1</strong> |
+                Total <strong th:text="${page.totalElements}">0</strong> Jobs
+            </div>
+            <div class="pagination-buttons">
+                <a th:if="${page.hasPrevious()}"
+                   th:href="@{/user/favorites(size=${page.size}, page=${page.number - 1})}"
+                   class="page-btn">← Previous</a>
 
-        .empty-state h2 {
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .browse-link {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 12px 24px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-        }
-
-        .browse-link:hover {
-            background: #5568d3;
-        }
-
-        .pagination {
-            margin-top: 30px;
-            text-align: center;
-        }
-
-        .pagination a {
-            display: inline-block;
-            padding: 8px 16px;
-            margin: 0 5px;
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-
-        .pagination a:hover {
-            background: #5568d3;
-        }
-
-        .pagination span {
-            margin: 0 15px;
-            color: #666;
-        }
-    </style>
-</head>
-<body>
-<div class="container">
-    <a th:href="@{/user/home}" class="back-link">← חזרה לדף הבית</a>
-
-    <div class="header">
-        <h1>⭐ המשרות המועדפות שלי</h1>
-        <span class="count-badge" th:text="${totalFavorites} + ' משרות'">0 משרות</span>
-    </div>
-
-    <!-- אם אין משרות מועדפות -->
-    <div th:if="${#lists.isEmpty(page.content)}" class="empty-state">
-        <div class="empty-state-icon">📋</div>
-        <h2>עדיין לא הוספת משרות למועדפים</h2>
-        <p>התחל לסמן משרות שמעניינות אותך בכוכב הזהב ⭐</p>
-        <a th:href="@{/jobs}" class="browse-link">עיון במשרות פתוחות</a>
-    </div>
-
-    <!-- טבלת משרות -->
-    <table th:if="${!#lists.isEmpty(page.content)}">
-        <thead>
-        <tr>
-            <th>כותרת</th>
-            <th>חברה</th>
-            <th>קטגוריה</th>
-            <th>מיקום</th>
-            <th>תאריך פרסום</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="job : ${page.content}">
-            <td>
-                <a th:href="@{|/jobs/${job.id}|}"
-                   th:text="${job.title}"
-                   class="job-title">Title</a>
-            </td>
-            <td th:text="${job.company} ?: '-'">Company</td>
-            <td th:text="${job.category != null ? job.category.name : '-'}">Category</td>
-            <td th:text="${job.location} ?: '-'">Location</td>
-            <td th:text="${#temporals.format(job.createdAt, 'dd/MM/yyyy')}">Date</td>
-        </tr>
-        </tbody>
-    </table>
-
-    <!-- Pagination -->
-    <div class="pagination" th:if="${page.totalPages > 1}">
-        <span th:text="'עמוד ' + (${page.number}+1) + ' מתוך ' + ${page.totalPages}">Page</span>
-        <div style="margin-top: 10px;">
-            <a th:if="${page.hasPrevious()}"
-               th:href="@{/user/favorites(size=${page.size}, page=${page.number - 1})}">← הקודם</a>
-            <a th:if="${page.hasNext()}"
-               th:href="@{/user/favorites(size=${page.size}, page=${page.number + 1})}">הבא →</a>
+                <a th:if="${page.hasNext()}"
+                   th:href="@{/user/favorites(size=${page.size}, page=${page.number + 1})}"
+                   class="page-btn">Next →</a>
+            </div>
         </div>
     </div>
-</div>
-</body>
+
+    <!-- ה־footer נטען מה־layout, אין צורך לכלול כאן -->
+    <script th:inline="javascript">
+        const csrfToken = /*[[${_csrf.token}]]*/ '';
+        const csrfHeader = /*[[${_csrf.headerName}]]*/ '';
+
+        function removeFavorite(button) {
+            if (!confirm('Remove this job from favorites?')) return;
+            const jobId = button.getAttribute('data-job-id');
+
+            fetch(`/jobs/${jobId}/favorite`, {
+                method: 'POST',
+                headers: { [csrfHeader]: csrfToken }
+            })
+                .then(res => res.json())
+                .then(data => { if (data.success) location.reload(); })
+                .catch(err => {
+                    console.error('Error removing favorite:', err);
+                    alert('Error removing job');
+                });
+        }
+    </script>
+</section>
 </html>

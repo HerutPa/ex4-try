@@ -64,9 +64,11 @@ public class Job {
     @JoinTable(
             name = "job_skills",
             joinColumns = @JoinColumn(name = "job_id"),
-            inverseJoinColumns = @JoinColumn(name = "skill_id")
+            inverseJoinColumns = @JoinColumn(name = "skill_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"job_id", "skill_id"})
     )
     private Set<Skill> skills = new HashSet<>();
+
 
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Review> reviews = new HashSet<>();

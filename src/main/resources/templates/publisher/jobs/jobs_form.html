@@ -1,42 +1,123 @@
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="jobForm">
-    <div>
-        <label>Company</label>
-        <input th:field="*{company}" required>
-        <div th:if="${#fields.hasErrors('company')}" th:errors="*{company}" style="color:red"></div>
+    <style>
+        /* ===== Glass Dark Form (scoped to this fragment) ===== */
+        .form-field { margin-bottom: 18px; }
+
+        .form-field label{
+            display:block; margin-bottom:6px; font-weight:800;
+            color:rgba(255,255,255,.9);
+        }
+
+        .form-field input[type="text"],
+        .form-field input[type="url"],
+        .form-field input[type="number"],
+        .form-field textarea,
+        .form-field select{
+            width:100%; padding:12px;
+            border-radius:10px; font-size:1em; font-family:inherit;
+            color: #0e0e0e;
+            background:rgba(255,255,255,.06);
+            border:1px solid rgba(255,255,255,.18);
+            outline:none; transition:border-color .2s, box-shadow .2s, background .2s;
+        }
+
+        .form-field input::placeholder,
+        .form-field textarea::placeholder{ color:rgba(255,255,255,.6); }
+
+        .form-field input:focus,
+        .form-field textarea:focus,
+        .form-field select:focus{
+            border-color:#7f8cff;
+            box-shadow:0 0 0 3px rgba(127,140,255,.15);
+            background:rgba(255,255,255,.08);
+        }
+
+        .form-section{
+            background:rgba(255,255,255,.06);
+            border:1px solid rgba(255,255,255,.15);
+            border-radius:14px;
+            padding:18px;
+            margin-bottom:18px;
+            backdrop-filter:blur(8px);
+        }
+
+        .form-section legend{
+            font-weight:900; font-size:1.05em; letter-spacing:.2px;
+            color:#fff; padding:0 8px;
+            background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+            -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+        }
+
+        .error-text{
+            color:#ff9e9e; font-size:.9em; margin-top:6px; font-weight:800;
+        }
+        .hint-text{
+            color:rgba(255,255,255,.75); font-size:.9em; margin-top:6px;
+        }
+
+        .divider{
+            text-align:center; margin:14px 0; color:rgba(255,255,255,.65); font-weight:800; position:relative;
+        }
+        .divider::before,.divider::after{
+            content:""; position:absolute; top:50%; width:40%; height:1px; background:rgba(255,255,255,.18);
+        }
+        .divider::before{ right:0; } .divider::after{ left:0; }
+
+        .selected-count{
+            display:inline-block; margin-top:8px; font-weight:800; font-size:.9em;
+            padding:6px 14px; border-radius:999px; color:#fff;
+            background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+            box-shadow:0 6px 16px rgba(102,126,234,.35);
+        }
+
+        select[multiple]{ min-height:150px; cursor:pointer; }
+        select[multiple] option{ padding:8px; cursor:pointer; }
+        select[multiple] option:hover{ background:rgba(255,255,255,.12); }
+
+        input[type="checkbox"]{ width:auto; margin-left:8px; cursor:pointer; accent-color:#7f8cff; }
+    </style>
+
+    <!-- Company -->
+    <div class="form-field">
+        <label>* Company</label>
+        <input th:field="*{company}" required placeholder="e.g. Google">
+        <div th:if="${#fields.hasErrors('company')}" th:errors="*{company}" class="error-text"></div>
     </div>
 
-    <div>
-        <label>Title</label>
-        <input th:field="*{title}" required>
-        <div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" style="color:red"></div>
+    <!-- Title -->
+    <div class="form-field">
+        <label>* Job Title</label>
+        <input th:field="*{title}" required placeholder="e.g. Full Stack Developer">
+        <div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="error-text"></div>
     </div>
 
-    <div>
-        <label>Description</label>
-        <textarea th:field="*{description}" rows="5" required></textarea>
-        <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}" style="color:red"></div>
+    <!-- Description -->
+    <div class="form-field">
+        <label>* Description</label>
+        <textarea th:field="*{description}" rows="6" required placeholder="Describe the job..."></textarea>
+        <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}" class="error-text"></div>
     </div>
 
-    <fieldset style="border:1px solid #ccc; padding:8px; margin:10px 0">
+    <!-- Category -->
+    <fieldset class="form-section">
         <legend>Category</legend>
 
-        <!-- שגיאת הולידציה המותנית (או קטגוריה קיימת או חדשה) -->
-        <div th:if="${#fields.hasGlobalErrors()}" style="color:red; margin-bottom:6px">
+        <div th:if="${#fields.hasGlobalErrors()}" class="error-text" style="margin-bottom:10px">
             <div th:each="e : ${#fields.globalErrors()}" th:text="${e}">error</div>
         </div>
 
-        <div>
-            <label>Choose existing</label>
+        <div class="form-field">
+            <label>Select an existing category</label>
             <select th:field="*{categoryId}" id="categorySelect">
                 <option value="">-- Select --</option>
                 <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}">Category</option>
             </select>
         </div>
 
-        <div style="text-align:center; margin:6px 0">or</div>
+        <div class="divider">or</div>
 
-        <div>
-            <label>New category</label>
+        <div class="form-field">
+            <label>New Category</label>
             <input th:field="*{newCategoryName}" id="newCategoryInput" placeholder="e.g. DevOps">
         </div>
 
@@ -51,29 +132,28 @@
         </script>
     </fieldset>
 
-    <!-- ===== Skills ===== -->
-    <fieldset style="border:1px solid #ccc; padding:8px; margin:10px 0">
-        <legend>Skills</legend>
+    <!-- Skills -->
+    <fieldset class="form-section">
+        <legend>Required Skills</legend>
 
-        <!-- שגיאות ולידציה ייעודיות -->
-        <div th:if="${#fields.hasErrors('skillIds')}" th:errors="*{skillIds}" style="color:red; margin-bottom:6px"></div>
-        <div th:if="${#fields.hasErrors('skillsInput')}" th:errors="*{skillsInput}" style="color:red; margin-bottom:6px"></div>
+        <div th:if="${#fields.hasErrors('skillIds')}" th:errors="*{skillIds}" class="error-text"></div>
+        <div th:if="${#fields.hasErrors('skillsInput')}" th:errors="*{skillsInput}" class="error-text"></div>
 
-        <div>
-            <label>Choose existing (multi-select)</label><br>
-            <select th:field="*{skillIds}" id="skillsSelect" multiple size="6" style="min-width:280px">
+        <div class="form-field">
+            <label>Select existing skills (multiple selection)</label>
+            <select th:field="*{skillIds}" id="skillsSelect" multiple>
                 <option th:each="s : ${allSkills}" th:value="${s.id}" th:text="${s.name}">Skill</option>
             </select>
-            <div id="skillsSelectedCount" style="font-size:12px; color:#555; margin-top:4px">0 selected</div>
+            <div id="skillsSelectedCount" class="selected-count">0 selected</div>
         </div>
 
-        <div style="text-align:center; margin:6px 0">and/or</div>
+        <div class="divider">or</div>
 
-        <div>
+        <div class="form-field">
             <label>New skills (comma-separated)</label>
-            <input th:field="*{skillsInput}" id="skillsInput" placeholder="e.g. Java, Spring Boot, SQL" style="min-width:280px">
-            <div style="font-size:12px; color:#777; margin-top:4px">
-                💡 Tip: אפשר לבחור מהרשימה <strong>וגם</strong> להוסיף חדשים בטקסט חופשי. שניהם יתווספו ביחד!
+            <input th:field="*{skillsInput}" id="skillsInput" placeholder="e.g. Java, Spring Boot, SQL">
+            <div class="hint-text">
+                <strong>You can select from the list and also add free text — both will be added.</strong>
             </div>
         </div>
 
@@ -85,11 +165,19 @@
 
                 function updateCount(){
                     const n = Array.from(sel.options).filter(o=>o.selected).length;
-                    if(cnt) cnt.textContent = n + " selected";
+                    if(cnt) cnt.textContent = n + ' selected';
                 }
 
-                // 🆕 הסרנו את הלוגיקה שמנקה אוטומטית!
-                // עכשיו אפשר לבחור מהרשימה וגם להוסיף טקסט חופשי ביחד
+                // multi-select without Ctrl
+                sel.addEventListener('mousedown', (ev) => {
+                    const option = ev.target;
+                    if(option && option.tagName === 'OPTION') {
+                        ev.preventDefault();
+                        option.selected = !option.selected;
+                        sel.focus();
+                        sel.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
 
                 sel.addEventListener('change', updateCount);
                 updateCount();
@@ -97,18 +185,24 @@
         </script>
     </fieldset>
 
-    <div>
+    <!-- Location -->
+    <div class="form-field">
         <label>Location</label>
-        <input th:field="*{location}">
+        <input th:field="*{location}" placeholder="e.g. Tel Aviv">
     </div>
 
-    <div>
-        <label>External URL</label>
-        <input th:field="*{externalUrl}" placeholder="https://example.com/apply">
-        <div th:if="${#fields.hasErrors('externalUrl')}" th:errors="*{externalUrl}" style="color:red"></div>
+    <!-- External URL -->
+    <div class="form-field">
+        <label>* Job Link</label>
+        <input th:field="*{externalUrl}" placeholder="https://example.com/careers/job123" required>
+        <div th:if="${#fields.hasErrors('externalUrl')}" th:errors="*{externalUrl}" class="error-text"></div>
     </div>
 
-    <div>
-        <label><input type="checkbox" th:field="*{active}"> Active</label>
+    <!-- Active Status -->
+    <div class="form-field">
+        <label style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;color:rgba(255,255,255,.9);font-weight:800">
+            <input type="checkbox" th:field="*{active}"><span>Active Job</span>
+        </label>
+        <div class="hint-text">Active jobs are visible to users in the system.</div>
     </div>
 </div>

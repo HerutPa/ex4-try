@@ -3,6 +3,7 @@ package com.example.demo.web;
 import com.example.demo.model.User;
 import com.example.demo.repository.SkillRepository;
 import com.example.demo.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -60,7 +61,7 @@ public class UserProfileController {
      * POST - שמירת עדכון כישורים
      */
     @PostMapping("/edit")
-    public String updateSkills(@ModelAttribute("form") SkillsEditForm form,
+    public String updateSkills(@Valid @ModelAttribute("form") SkillsEditForm form,
                                Principal principal,
                                RedirectAttributes ra) {
         try {
