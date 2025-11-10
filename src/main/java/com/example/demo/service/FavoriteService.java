@@ -55,4 +55,13 @@ public class FavoriteService {
     public long countFavorites(User user) {
         return favoriteRepo.countByUser(user);
     }
+
+    /**
+     * ✅ מתודה חדשה: מחיקת כל המועדפים של משרה מסוימת
+     * שימוש: לפני מחיקת משרה, צריך למחוק את כל הקשרים שלה בטבלת user_favorites
+     */
+    @Transactional
+    public void removeAllFavoritesForJob(Job job) {
+        favoriteRepo.deleteByJob(job);
+    }
 }

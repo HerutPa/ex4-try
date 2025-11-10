@@ -6,6 +6,7 @@ import com.example.demo.model.UserFavorite;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -25,6 +26,10 @@ public interface UserFavoriteRepository extends JpaRepository<UserFavorite, Long
 
     // מחיקת מועדף
     void deleteByUserAndJob(User user, Job job);
+
+    // ✅ NEW: מחיקת כל המועדפים של משרה מסוימת
+    @Modifying
+    void deleteByJob(Job job);
 
     // ספירת מועדפים של משתמש
     long countByUser(User user);

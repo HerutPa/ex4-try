@@ -147,14 +147,6 @@
 </div>
 
 <div class="container">
-    <!-- errors -->
-    <div th:if="${#fields.hasErrors('*')}" class="alert">
-        <strong>Form Errors:</strong>
-        <ul style="margin:10px 0 0 18px">
-            <li th:each="err : ${#fields.errors('*')}" th:text="${err}">Error</li>
-        </ul>
-    </div>
-
     <!-- form card -->
     <div class="card">
         <div class="section-title"><i class="fas fa-pen-to-square"></i> Job Details</div>
@@ -162,6 +154,14 @@
 
         <form th:action="@{/publisher/jobs/{id}(id=${jobId})}" th:object="${form}" method="post">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+            <!-- ✅ שגיאות בתוך הטופס (עם th:object) -->
+            <div th:if="${#fields.hasAnyErrors()}" class="alert">
+                <strong>Form Errors:</strong>
+                <ul style="margin:10px 0 0 18px">
+                    <li th:each="err : ${#fields.allErrors()}" th:text="${err}">Error</li>
+                </ul>
+            </div>
 
             <!-- כאן נטען את הטופס החלקי שלך -->
             <div th:replace="~{publisher/jobs/jobs_form :: jobForm}"></div>
@@ -195,5 +195,4 @@
     })();
 </script>
 </body>
-<div th:replace="fragments/footer :: footer"></div>
 </html>

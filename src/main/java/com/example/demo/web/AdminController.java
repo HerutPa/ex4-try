@@ -1,5 +1,6 @@
 package com.example.demo.web;
 
+import com.example.demo.model.User;
 import com.example.demo.repository.*;
 import com.example.demo.service.JobService;
 import org.springframework.data.domain.Pageable;
@@ -7,9 +8,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.security.Principal;
 
 @Controller
 @RequestMapping("/admin")
@@ -66,19 +70,58 @@ public class AdminController {
     }
 
     @PostMapping("/users/{id}/delete")
-    public String deleteUser(@PathVariable Long id, RedirectAttributes ra) {
+    @Transactional // ✅ חשוב! כדי שהמחיקה תהיה atomic
+    public String deleteUser(@PathVariable Long id,
+                             Principal principal,
+                             RedirectAttributes ra) {
         try {
-            // בדיקה שלא מוחקים את עצמו
-            var user = userRepo.findById(id).orElseThrow();
-            if (user.getRole().name().equals("ADMIN")) {
+            // ✅ 1. מצא את המשתמש למחיקה
+            User userToDelete = userRepo.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("משתמש לא נמצא"));
+
+            // ✅ 2. בדיקה שלא מוחקים ADMIN
+            if (userToDelete.getRole().name().equals("ADMIN")) {
                 ra.addFlashAttribute("error", "❌ לא ניתן למחוק משתמש ADMIN!");
                 return "redirect:/admin/users";
             }
 
-            userRepo.deleteById(id);
-            ra.addFlashAttribute("msg", "✅ המשתמש נמחק בהצלחה!");
+            // ✅ 3. בדיקה שלא מוחקים את עצמך
+            String currentUserEmail = principal.getName();
+            if (userToDelete.getEmail().equalsIgnoreCase(currentUserEmail)) {
+                ra.addFlashAttribute("error", "❌ לא ניתן למחוק את עצמך!");
+                return "redirect:/admin/users";
+            }
+
+            // ✅ 4. מחיקת כל הקשרים של המשתמש
+
+            // א. מחיקת כל הביקורות שהמשתמש כתב
+            reviewRepo.deleteAll(userToDelete.getReviews());
+
+            // ב. ניתוק המשתמש מכל המשרות שהוא פרסם (או מחיקתן)
+            var jobsPublished = jobRepo.findByPublisher(userToDelete, Pageable.unpaged());
+            for (var job : jobsPublished) {
+                // אופציה 1: מחיקת המשרות לגמרי
+                jobRepo.delete(job);
+
+                // אופציה 2: ניתוק המשתמש מהמשרות (אם רוצים לשמור את המשרות)
+                // job.setPublisher(null);
+                // jobRepo.save(job);
+            }
+
+            // ג. ניקוי קשר many-to-many של skills
+            userToDelete.setSkills(new java.util.HashSet<>());
+            userRepo.save(userToDelete); // שמירה כדי לנקות את user_skills
+
+            // ✅ 5. כעת ניתן למחוק את המשתמש בבטחה
+            userRepo.delete(userToDelete);
+
+            ra.addFlashAttribute("msg", "✅ המשתמש נמחק בהצלחה (כולל כל המשרות והביקורות שלו)!");
+
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("error", "❌ " + e.getMessage());
         } catch (Exception e) {
             ra.addFlashAttribute("error", "❌ שגיאה במחיקת המשתמש: " + e.getMessage());
+            e.printStackTrace(); // לוג לדיבוג
         }
         return "redirect:/admin/users";
     }

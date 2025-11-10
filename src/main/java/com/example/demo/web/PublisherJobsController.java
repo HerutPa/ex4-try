@@ -7,14 +7,14 @@ import com.example.demo.model.User;
 import com.example.demo.repository.JobCategoryRepository;
 import com.example.demo.repository.SkillRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.UserFavoriteRepository; // ✅ הוספה
 import com.example.demo.service.JobService;
-import com.example.demo.model.Review;
-import com.example.demo.repository.ReviewRepository;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -33,9 +33,20 @@ public class PublisherJobsController {
     private final JobService jobService;
     private final JobCategoryRepository categoryRepo;
     private final UserRepository userRepo;
-    private final SkillRepository skillRepo; // ✅ חדש
-    private final ReviewRepository reviewRepo; // ✅ חדש
+    private final SkillRepository skillRepo;
+    private final UserFavoriteRepository favoriteRepo; // ✅ הוספה
 
+    public PublisherJobsController(JobService jobService,
+                                   JobCategoryRepository categoryRepo,
+                                   UserRepository userRepo,
+                                   SkillRepository skillRepo,
+                                   UserFavoriteRepository favoriteRepo) { // ✅ הוספה
+        this.jobService = jobService;
+        this.categoryRepo = categoryRepo;
+        this.userRepo = userRepo;
+        this.skillRepo = skillRepo;
+        this.favoriteRepo = favoriteRepo; // ✅ הוספה
+    }
 
     /** עמוד "העבודות שלי" של המפרסם */
     @GetMapping
@@ -44,7 +55,7 @@ public class PublisherJobsController {
         model.addAttribute("page", jobService.getByPublisher(publisher, pageable));
         if (!model.containsAttribute("form")) model.addAttribute("form", new JobForm());
         model.addAttribute("categories", categoryRepo.findAll(Sort.by("name")));
-        model.addAttribute("allSkills", skillRepo.findAll(Sort.by("name"))); // ✅ לרנדר ה־multi-select
+        model.addAttribute("allSkills", skillRepo.findAll(Sort.by("name")));
         return "publisher/jobs/my-jobs";
     }
 
@@ -54,7 +65,7 @@ public class PublisherJobsController {
             model.addAttribute("form", new JobForm());
         }
         model.addAttribute("categories", categoryRepo.findAll(Sort.by("name")));
-        model.addAttribute("allSkills", skillRepo.findAll(Sort.by("name"))); // ✅
+        model.addAttribute("allSkills", skillRepo.findAll(Sort.by("name")));
         return "publisher/jobs/new";
     }
 
@@ -70,7 +81,7 @@ public class PublisherJobsController {
             User publisher = findCurrentUser(principal);
             model.addAttribute("page", jobService.getByPublisher(publisher, pageable));
             model.addAttribute("categories", categoryRepo.findAll(Sort.by("name")));
-            model.addAttribute("allSkills", skillRepo.findAll(Sort.by("name"))); // ✅ חובה כשיש שגיאות
+            model.addAttribute("allSkills", skillRepo.findAll(Sort.by("name")));
             return "publisher/jobs/my-jobs";
         }
 
@@ -88,31 +99,17 @@ public class PublisherJobsController {
         job.setActive(form.isActive());
         job.setCategory(category);
         job.setPublisher(publisher);
-
-        // ✅ שיוך מיומנויות
         job.setSkills(resolveSkillsFromForm(form));
 
         try {
             jobService.save(job);
-            ra.addFlashAttribute("msg", "Job created successfully.");
+            ra.addFlashAttribute("msg", "✅ Job created successfully!");
         } catch (org.springframework.dao.DataIntegrityViolationException e) {
-            ra.addFlashAttribute("msg", "Job with this URL already exists.");
+            ra.addFlashAttribute("error", "❌ Job with this URL already exists.");
         }
 
         return "redirect:/publisher/jobs";
     }
-
-    /** תגובות למשרה ספציפית של המפרסם (עם בדיקת בעלות) */
-    @GetMapping("/{id}/reviews")
-    public String jobReviews(@PathVariable Long id, Principal principal, Model model) {
-        User publisher = findCurrentUser(principal);
-        Job job = jobService.getByIdAndPublisherOrThrow(id, publisher.getId()); // בדיקת בעלות
-        var reviews = reviewRepo.findByJobAndStatusOrderByCreatedAtDesc(job, Review.Status.APPROVED);
-        model.addAttribute("job", job);
-        model.addAttribute("reviews", reviews);
-        return "publisher/reviews/job-reviews"; // צור טמפלייט זה
-    }
-
 
     @PostMapping("/{id}")
     public String update(@PathVariable Long id,
@@ -124,7 +121,6 @@ public class PublisherJobsController {
         User publisher = findCurrentUser(principal);
         Job job = jobService.getByIdAndPublisherOrThrow(id, publisher.getId());
 
-        // בדיקת כפילות URL אצל רשומה אחרת
         if (!br.hasFieldErrors("externalUrl")
                 && jobService.existsByExternalUrlIgnoreCaseAndIdNot(form.getExternalUrl(), id)) {
             br.rejectValue("externalUrl", "duplicate", "Another job with this URL already exists");
@@ -132,7 +128,7 @@ public class PublisherJobsController {
 
         if (br.hasErrors()) {
             model.addAttribute("categories", categoryRepo.findAll(Sort.by("name")));
-            model.addAttribute("allSkills", skillRepo.findAll(Sort.by("name"))); // ✅ להצגה מחודשת של הרשימה
+            model.addAttribute("allSkills", skillRepo.findAll(Sort.by("name")));
             model.addAttribute("jobId", id);
             return "publisher/jobs/edit";
         }
@@ -148,32 +144,17 @@ public class PublisherJobsController {
         job.setExternalUrl(form.getExternalUrl());
         job.setActive(form.isActive());
         job.setCategory(category);
-
-        // ✅ עדכון מיומנויות
         job.setSkills(resolveSkillsFromForm(form));
 
         jobService.save(job);
-        ra.addFlashAttribute("msg", "Job updated.");
+        ra.addFlashAttribute("msg", "✅ Job updated successfully!");
         return "redirect:/publisher/jobs";
     }
 
-    public PublisherJobsController(JobService jobService,
-                                   JobCategoryRepository categoryRepo,
-                                   UserRepository userRepo,
-                                   SkillRepository skillRepo,
-                                   ReviewRepository reviewRepo) { // ✅ הוסף פרמטר
-        this.jobService = jobService;
-        this.categoryRepo = categoryRepo;
-        this.userRepo = userRepo;
-        this.skillRepo = skillRepo;
-        this.reviewRepo = reviewRepo; // ✅ השמה
-    }
-
-    // טופס עריכה
     @GetMapping("/{id}/edit")
     public String edit(@PathVariable Long id, Principal principal, Model model) {
         User publisher = findCurrentUser(principal);
-        Job job = jobService.getByIdAndPublisherOrThrow(id, publisher.getId()); // בדיקת בעלות
+        Job job = jobService.getByIdAndPublisherOrThrow(id, publisher.getId());
 
         if (!model.containsAttribute("form")) {
             JobForm form = new JobForm();
@@ -186,14 +167,13 @@ public class PublisherJobsController {
             form.setExternalUrl(job.getExternalUrl());
             form.setCategoryId(job.getCategory() != null ? job.getCategory().getId() : null);
             form.setActive(job.isActive());
-            // ✅ למלא בחירה קיימת של skills לעריכה (IDs)
             if (job.getSkills() != null && !job.getSkills().isEmpty()) {
                 form.setSkillIds(job.getSkills().stream().map(Skill::getId).toList());
             }
             model.addAttribute("form", form);
         }
         model.addAttribute("categories", categoryRepo.findAll(Sort.by("name")));
-        model.addAttribute("allSkills", skillRepo.findAll(Sort.by("name"))); // ✅
+        model.addAttribute("allSkills", skillRepo.findAll(Sort.by("name")));
         model.addAttribute("jobId", id);
         return "publisher/jobs/edit";
     }
@@ -201,20 +181,50 @@ public class PublisherJobsController {
     @PostMapping("/{id}/toggle")
     public String toggle(@PathVariable Long id, Principal principal, RedirectAttributes ra) {
         User publisher = findCurrentUser(principal);
-        Job job = jobService.getByIdAndPublisherOrThrow(id, publisher.getId()); // בדיקת בעלות
+        Job job = jobService.getByIdAndPublisherOrThrow(id, publisher.getId());
         job.setActive(!job.isActive());
         jobService.save(job);
-        ra.addFlashAttribute("msg", "Status changed.");
+        ra.addFlashAttribute("msg", job.isActive() ?
+                "✅ Job activated successfully!" :
+                "⏸️ Job paused successfully!");
         return "redirect:/publisher/jobs";
     }
 
     @PostMapping("/{id}/delete")
+    @Transactional // ✅ חשוב! כדי שהמחיקה תהיה atomic
     public String delete(@PathVariable Long id, Principal principal, RedirectAttributes ra) {
-        User publisher = findCurrentUser(principal);
-        jobService.deleteByIdAndPublisher(id, publisher.getId()); // בודק בעלות ומוחק
-        ra.addFlashAttribute("msg", "Job deleted.");
+        try {
+            User publisher = findCurrentUser(principal);
+            Job job = jobService.getByIdAndPublisherOrThrow(id, publisher.getId());
+
+            // ✅ שלב 1: מחיקת כל המועדפים של המשרה הזו
+            // צריך להוסיף מתודה ב-UserFavoriteRepository: void deleteByJob(Job job);
+            favoriteRepo.deleteByJob(job);
+
+            // ✅ שלב 2: מחיקת כל הביקורות של המשרה
+            if (job.getReviews() != null && !job.getReviews().isEmpty()) {
+                job.getReviews().clear();
+                jobService.save(job);
+            }
+
+            // ✅ שלב 3: ניקוי skills (many-to-many)
+            if (job.getSkills() != null && !job.getSkills().isEmpty()) {
+                job.getSkills().clear();
+                jobService.save(job);
+            }
+
+            // ✅ שלב 4: עכשיו ניתן למחוק את המשרה בבטחה
+            jobService.deleteByIdAndPublisher(id, publisher.getId());
+
+            ra.addFlashAttribute("msg", "🗑️ Job deleted successfully!");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "❌ Error deleting job: " + e.getMessage());
+            e.printStackTrace(); // לדיבוג
+        }
         return "redirect:/publisher/jobs";
     }
+
+    /* ===== Helper Methods ===== */
 
     private JobCategory resolveOrCreateCategory(JobForm form) {
         if (form.getNewCategoryName() != null && !form.getNewCategoryName().trim().isEmpty()) {
@@ -231,13 +241,13 @@ public class PublisherJobsController {
         }
     }
 
-    /** ✅ מאחד בחירה לפי IDs או קלט חופשי למערך Skills לשיוך ל-Job */
     private Set<Skill> resolveSkillsFromForm(JobForm form) {
         Set<Skill> out = new HashSet<>();
 
         List<Long> ids = form.getSkillIds();
         if (ids != null && !ids.isEmpty()) {
             out.addAll(skillRepo.findAllById(ids));
+            return out;
         }
 
         String raw = form.getSkillsInput();
@@ -246,7 +256,7 @@ public class PublisherJobsController {
             for (String p : parts) {
                 String name = p.trim().replaceAll("\\s+", " ");
                 if (name.isEmpty()) continue;
-                Skill s = skillRepo.findByNameIgnoreCase(name)
+                Skill s = skillRepo.findByName(name)
                         .orElseGet(() -> skillRepo.save(new Skill(name)));
                 out.add(s);
             }
@@ -254,7 +264,6 @@ public class PublisherJobsController {
         return out;
     }
 
-    /* ===== helpers ===== */
     private User findCurrentUser(Principal principal) {
         String email = principal.getName();
         return userRepo.findByEmailIgnoreCase(email)

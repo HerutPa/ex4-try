@@ -15,21 +15,24 @@
         .form-field select{
             width:100%; padding:12px;
             border-radius:10px; font-size:1em; font-family:inherit;
-            color: #0e0e0e;
-            background:rgba(255,255,255,.06);
-            border:1px solid rgba(255,255,255,.18);
+            /* ✅ שינוי עיקרי: טקסט כהה על רקע בהיר יותר */
+            color: #1a1a1a;
+            background: rgba(255,255,255,.65);
+            border:1px solid rgba(255,255,255,.3);
             outline:none; transition:border-color .2s, box-shadow .2s, background .2s;
         }
 
         .form-field input::placeholder,
-        .form-field textarea::placeholder{ color:rgba(255,255,255,.6); }
+        .form-field textarea::placeholder{
+            color:rgba(0,0,0,.5); /* placeholder כהה יותר על רקע בהיר */
+        }
 
         .form-field input:focus,
         .form-field textarea:focus,
         .form-field select:focus{
             border-color:#7f8cff;
-            box-shadow:0 0 0 3px rgba(127,140,255,.15);
-            background:rgba(255,255,255,.08);
+            box-shadow:0 0 0 3px rgba(127,140,255,.2);
+            background:rgba(255,255,255,.75); /* עוד יותר בהיר בפוקוס */
         }
 
         .form-section{
@@ -70,9 +73,22 @@
             box-shadow:0 6px 16px rgba(102,126,234,.35);
         }
 
-        select[multiple]{ min-height:150px; cursor:pointer; }
-        select[multiple] option{ padding:8px; cursor:pointer; }
-        select[multiple] option:hover{ background:rgba(255,255,255,.12); }
+        select[multiple]{
+            min-height:150px; cursor:pointer;
+            /* ✅ רקע בהיר גם ב-multi select */
+            background: rgba(255,255,255,.65);
+        }
+        select[multiple] option{
+            padding:8px; cursor:pointer;
+            color: #1a1a1a; /* טקסט כהה */
+        }
+        select[multiple] option:hover{
+            background:rgba(127,140,255,.25); /* הדגשה כחולה */
+        }
+        select[multiple] option:checked{
+            background:rgba(127,140,255,.4); /* נבחר - כחול יותר חזק */
+            font-weight:700;
+        }
 
         input[type="checkbox"]{ width:auto; margin-left:8px; cursor:pointer; accent-color:#7f8cff; }
     </style>
